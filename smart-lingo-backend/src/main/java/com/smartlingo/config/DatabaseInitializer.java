@@ -71,6 +71,7 @@ public class DatabaseInitializer implements CommandLineRunner {
         String sql = "CREATE TABLE IF NOT EXISTS study_logs (" +
                 "id BIGINT AUTO_INCREMENT PRIMARY KEY, " +
                 "user_id BIGINT NOT NULL, " +
+                "word_id BIGINT DEFAULT NULL, " +
                 "activity_type VARCHAR(50), " +
                 "points_earned INT, " +
                 "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
@@ -79,6 +80,14 @@ public class DatabaseInitializer implements CommandLineRunner {
         try {
             jdbcTemplate.execute(sql);
             System.out.println("Database table 'study_logs' checked/created successfully.");
+            
+            // Migration: Add word_id if missing
+            try {
+                jdbcTemplate.execute("ALTER TABLE study_logs ADD COLUMN word_id BIGINT DEFAULT NULL");
+                System.out.println("Added column 'word_id' to 'study_logs'.");
+            } catch (Exception e) {
+                // Ignore if column exists
+            }
         } catch (Exception e) {
             System.err.println("Failed to initialize database table 'study_logs': " + e.getMessage());
         }

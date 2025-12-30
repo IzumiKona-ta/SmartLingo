@@ -28,6 +28,12 @@
           <el-form-item label="每日学习目标 (分钟)">
             <el-slider v-model="form.dailyGoal" :min="10" :max="120" :step="10" show-input />
           </el-form-item>
+          <el-form-item label="每组单词数量">
+             <div class="flex items-center space-x-4">
+                <el-input-number v-model="form.wordsPerGroup" :min="5" :max="50" :step="5" />
+                <span class="text-sm text-gray-500">建议: 10-20个/组</span>
+             </div>
+          </el-form-item>
         </el-form>
       </div>
     </div>
@@ -76,12 +82,14 @@ const form = reactive({
   nickname: '演示用户',
   email: 'user@example.com',
   dailyGoal: 30,
+  wordsPerGroup: parseInt(localStorage.getItem('wordsPerGroup')) || 20,
   darkMode: false,
   notifications: true,
   sound: true
 })
 
 const saveSettings = () => {
+  localStorage.setItem('wordsPerGroup', form.wordsPerGroup)
   ElMessage.success('设置已保存')
 }
 </script>

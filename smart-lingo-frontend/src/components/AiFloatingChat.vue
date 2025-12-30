@@ -90,7 +90,7 @@ import axios from 'axios'
 const isOpen = ref(false)
 const inputText = ref('')
 const messages = ref([
-  { role: 'ai', text: '你好！我是你的 AI 助教。请发送文字或上传题目照片！' }
+  { role: 'ai', text: '你好，我是你的 AI 助教！' }
 ])
 const isLoading = ref(false)
 const selectedImage = ref(null)

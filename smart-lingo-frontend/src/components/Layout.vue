@@ -116,7 +116,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { HomeFilled, Reading, DataAnalysis, Setting, Menu } from '@element-plus/icons-vue'
+import { HomeFilled, Reading, DataAnalysis, Setting, Menu, Document } from '@element-plus/icons-vue'
 import AiFloatingChat from './AiFloatingChat.vue'
 
 const route = useRoute()
@@ -127,6 +127,7 @@ const username = ref('User')
 const navItems = [
   { name: '学习看板', path: '/', icon: HomeFilled },
   { name: '单词特训', path: '/study', icon: Reading },
+  { name: '真题资源', path: '/resources', icon: Document },
   { name: '数据统计', path: '/stats', icon: DataAnalysis },
   { name: '设置', path: '/settings', icon: Setting },
 ]

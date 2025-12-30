@@ -27,6 +27,12 @@ public class StudyController {
             
             StudyLog log = new StudyLog();
             log.setUserId(userId);
+            if (payload.containsKey("wordId") && payload.get("wordId") != null) {
+                log.setWordId(Long.valueOf(payload.get("wordId").toString()));
+                System.out.println("Checkin for wordId: " + log.getWordId());
+            } else {
+                System.out.println("Checkin missing wordId!");
+            }
             log.setActivityType(type);
             log.setCreatedAt(LocalDateTime.now());
             // In a real app, we might track duration or specific word IDs here

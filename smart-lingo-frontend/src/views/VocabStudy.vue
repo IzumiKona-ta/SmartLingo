@@ -1,5 +1,5 @@
 ·<template>
-  <div class="h-screen bg-gray-50 flex flex-col items-center font-sans text-gray-800 select-none overflow-hidden relative">
+  <div class="h-screen bg-gray-50 flex flex-col items-center font-sans text-gray-800 overflow-hidden relative">
     
     <!-- Top Bar: Progress & Status -->
     <div class="flex-none w-full max-w-3xl px-6 pt-8 pb-4 flex items-center justify-between z-20">
@@ -58,122 +58,142 @@
          <button @click="fetchWords" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-colors">重试</button>
       </div>
 
-      <div v-else-if="isFinished" class="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl shadow-xl z-20 p-8 text-center animate__animated animate__fadeIn">
-         <div class="text-6xl mb-6">🎉</div>
-         <h2 class="text-2xl font-bold text-gray-900 mb-2">今日任务完成!</h2>
-         <p class="text-gray-500 mb-8">你已经完成了这一组的学习。</p>
-         <div class="space-y-3 w-full">
-           <button @click="reset" class="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700 hover:shadow-xl transition-all transform hover:-translate-y-1">
-             再来一组
-           </button>
-           <button @click="router.push('/dashboard')" class="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors">
-             返回看板
-           </button>
-         </div>
-      </div>
+      <div v-else-if="isFinished" class="absolute inset-0 flex flex-col bg-white rounded-3xl shadow-xl z-20 overflow-hidden animate__animated animate__fadeIn">
+     <!-- Header -->
+     <div class="flex-none p-6 text-center border-b border-gray-100 bg-gray-50">
+         <div class="text-4xl mb-2">🎉</div>
+         <h2 class="text-xl font-bold text-gray-900">本组学习完成!</h2>
+         <p class="text-sm text-gray-500">本次共学习 {{ reviewedWords.length }} 个单词</p>
+     </div>
 
-      <!-- The Flip Card -->
+     <!-- Review List -->
+     <div class="flex-1 overflow-y-auto p-4 custom-scrollbar">
+         <div v-for="(word, index) in reviewedWords" :key="index" class="flex items-center justify-between p-3 mb-2 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition-shadow">
+             <div class="flex flex-col text-left">
+                 <span class="font-bold text-gray-800">{{ word.word }}</span>
+                 <span class="text-xs text-gray-500">{{ word.translate }}</span>
+             </div>
+         </div>
+     </div>
+
+     <!-- Footer Actions -->
+     <div class="flex-none p-4 bg-white border-t border-gray-100 flex space-x-3">
+        <button @click="reset" class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700 hover:shadow-xl transition-all transform hover:-translate-y-1">
+          再来一组
+        </button>
+        <button @click="router.push('/dashboard')" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+          返回看板
+        </button>
+     </div>
+  </div>
+
       <div 
         v-else 
-        class="w-full h-full relative preserve-3d cursor-pointer group"
-        :class="[
-           isFlipped ? 'rotate-y-180' : '', 
-           isFlyingOut ? 'fly-out' : 'transition-transform duration-500 ease-out-back'
-        ]"
-        :style="{ 
-          '--rotation': isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-          transformOrigin: 'center center'
-        }"
-        @click="!isFlipped && flipCard()"
+        class="w-full h-full relative"
       >
-        <!-- FRONT FACE -->
+        <!-- Progress Indicator (Top Left outside card) -->
+         <div class="absolute -top-12 left-0 text-gray-400 font-bold text-lg font-mono tracking-widest z-0">
+            {{ Math.min(masteredCount + 1, initialCount) }} / {{ initialCount }}
+         </div>
+
         <div 
-          class="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-2xl flex flex-col items-center justify-center p-8 border border-gray-100 overflow-hidden"
-          :style="{ zIndex: isFlipped ? 0 : 10, transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(0deg) translateZ(1px)' }"
+           class="w-full h-full transition-all duration-500 ease-in-out"
+           :class="{ 'opacity-0 -translate-y-12': isFlyingOut }"
         >
-           <!-- Decorative Background -->
-           <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 opacity-50 pointer-events-none"></div>
-           
-           <!-- Notebook Button -->
-           <button 
-             @click.stop="addToNotebook" 
-             class="absolute top-6 right-6 p-3 rounded-full hover:bg-gray-100 transition-colors z-20 group/star"
-           >
-             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-300 group-hover/star:text-yellow-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-             </svg>
-           </button>
-
-           <div class="flex-1 flex flex-col items-center justify-center w-full z-10">
-              <!-- Word -->
-              <h2 class="text-6xl font-black text-gray-800 mb-4 tracking-tight text-center break-words w-full">{{ currentWord.word }}</h2>
-              
-              <!-- Phonetic & Audio -->
-              <div class="flex items-center space-x-3 mb-12">
-                 <span v-if="currentWord.phonetic" class="text-xl text-gray-500 font-mono tracking-wider">/{{ currentWord.phonetic }}/</span>
-                 <button 
-                   @click.stop="playAudio" 
-                   class="p-2 bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                 >
-                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                 </button>
-              </div>
-
-              <!-- Cloze Sentence (If available) -->
-              <div v-if="clozeSentence" class="w-full p-6 bg-indigo-50/50 rounded-2xl text-center">
-                 <p class="text-lg text-gray-600 leading-relaxed font-serif">
-                   "{{ clozeSentence }}"
-                 </p>
-              </div>
-              <div v-else class="w-full p-6 text-center text-gray-300 italic">
-                 (暂无例句)
-              </div>
-           </div>
-
-           <div class="text-gray-400 text-sm font-medium animate-pulse mt-4">
-              点击卡片或按空格查看答案
-           </div>
-        </div>
-
-        <!-- BACK FACE -->
-        <div 
-          class="absolute inset-0 backface-hidden rotate-y-180 bg-white rounded-3xl shadow-2xl flex flex-col p-8 border border-gray-100 overflow-hidden"
-          :style="{ zIndex: isFlipped ? 10 : 0, transform: isFlipped ? 'rotateY(180deg) translateZ(1px)' : 'rotateY(180deg)' }"
-        >
-           <!-- Decorative Background -->
-           <div class="absolute inset-0 bg-gradient-to-tl from-green-50/50 to-blue-50/30 opacity-50 pointer-events-none"></div>
-
-           <!-- Content -->
-           <div class="flex-1 overflow-y-auto z-10 custom-scrollbar">
-              <!-- Header -->
-              <div class="flex items-end justify-between border-b border-gray-100 pb-4 mb-6">
-                 <h3 class="text-3xl font-bold text-gray-800">{{ currentWord.word }}</h3>
-                 <button @click.stop="playAudio" class="text-indigo-500 hover:text-indigo-700 p-1">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-                 </button>
-              </div>
-
-              <!-- Translation -->
-              <div class="mb-8">
-                 <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">中文释义</h4>
-                 <p class="text-xl font-medium text-gray-800 leading-relaxed">{{ currentWord.translate }}</p>
-              </div>
-
-              <!-- Full Example -->
-              <div v-if="currentWord.exampleEn" class="mb-8">
-                 <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">例句</h4>
-                 <div class="p-4 bg-gray-50 rounded-xl border-l-4 border-indigo-400">
-                    <p class="text-gray-700 italic leading-relaxed" v-html="highlightedExample"></p>
-                    <p v-if="currentWord.exampleCn" class="text-gray-500 text-sm mt-2">{{ currentWord.exampleCn }}</p>
-                 </div>
-              </div>
-
-              <!-- Mnemonic / Root (Placeholder/Optional) -->
-              <div v-if="currentWord.mnemonic" class="mb-6">
-                 <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">助记</h4>
-                 <p class="text-gray-600 text-sm">{{ currentWord.mnemonic }}</p>
-              </div>
-           </div>
+          <div
+            class="w-full h-full relative preserve-3d cursor-pointer group transition-transform duration-500 ease-out-back"
+            :class="{ 'rotate-y-180': isFlipped }"
+            :style="{ 
+              '--rotation': isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              transformOrigin: 'center center'
+            }"
+            @click="handleCardClick"
+          >
+            <!-- FRONT FACE -->
+            <div 
+              class="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-2xl flex flex-col items-center justify-center p-8 border border-gray-100 overflow-hidden"
+              :style="{ zIndex: isFlipped ? 0 : 10, transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(0deg) translateZ(1px)' }"
+            >
+               <!-- Decorative Background -->
+               <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 opacity-50 pointer-events-none"></div>
+               
+               <!-- Notebook Button -->
+               <button 
+                 @click.stop="toggleNotebook" 
+                 class="absolute top-6 right-6 p-3 rounded-full hover:bg-gray-100 transition-colors z-20 group/star"
+                 :class="{ 'bg-yellow-50': isStarred }"
+               >
+                 <svg xmlns="http://www.w3.org/2000/svg" 
+                   class="h-6 w-6 transition-colors" 
+                   :class="isStarred ? 'text-yellow-400 fill-current' : 'text-gray-300 group-hover/star:text-yellow-400'"
+                   fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                 </svg>
+               </button>
+    
+               <div class="flex-1 flex flex-col items-center justify-center w-full z-10">
+                  <!-- Word -->
+                  <h2 class="text-6xl font-black text-gray-800 mb-4 tracking-tight text-center break-words w-full select-text cursor-text" @click.stop>{{ currentWord.word }}</h2>
+                  
+                  <!-- Phonetic -->
+                  <div class="flex items-center space-x-3 mb-12">
+                     <span v-if="currentWord.phonetic" class="text-xl text-gray-500 font-mono tracking-wider select-text cursor-text" @click.stop>/{{ currentWord.phonetic }}/</span>
+                  </div>
+    
+                  <!-- Cloze Sentence (If available) -->
+                  <div v-if="clozeSentence" class="w-full p-6 bg-indigo-50/50 rounded-2xl text-center">
+                     <p class="text-lg text-gray-600 leading-relaxed font-serif select-text cursor-text" @click.stop>
+                       "{{ clozeSentence }}"
+                     </p>
+                  </div>
+                  <div v-else class="w-full p-6 text-center text-gray-300 italic">
+                     (暂无例句)
+                  </div>
+               </div>
+    
+               <div class="text-gray-400 text-sm font-medium animate-pulse mt-4">
+                  点击卡片或按空格查看答案
+               </div>
+            </div>
+    
+            <!-- BACK FACE -->
+            <div 
+              class="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-2xl flex flex-col p-8 border border-gray-100 overflow-hidden"
+              style="backface-visibility: hidden; transform: rotateY(180deg);"
+            >
+               <!-- Decorative Background -->
+               <div class="absolute inset-0 bg-gradient-to-tl from-green-50/50 to-blue-50/30 opacity-50 pointer-events-none"></div>
+    
+               <!-- Content -->
+               <div class="flex-1 overflow-y-auto z-10 custom-scrollbar">
+                  <!-- Header -->
+                  <div class="flex items-end justify-between border-b border-gray-100 pb-4 mb-6">
+                     <h3 class="text-3xl font-bold text-gray-800 select-text cursor-text" @click.stop>{{ currentWord.word }}</h3>
+                  </div>
+    
+                  <!-- Translation -->
+                  <div class="mb-8">
+                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">中文释义</h4>
+                     <p class="text-xl font-medium text-gray-800 leading-relaxed select-text cursor-text" @click.stop>{{ currentWord.translate }}</p>
+                  </div>
+    
+                  <!-- Full Example -->
+                  <div v-if="currentWord.exampleEn" class="mb-8">
+                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">例句</h4>
+                     <div class="p-4 bg-gray-50 rounded-xl border-l-4 border-indigo-400">
+                        <p class="text-gray-700 italic leading-relaxed select-text cursor-text" v-html="highlightedExample" @click.stop></p>
+                        <p v-if="currentWord.exampleCn" class="text-gray-500 text-sm mt-2 select-text cursor-text" @click.stop>{{ currentWord.exampleCn }}</p>
+                     </div>
+                  </div>
+    
+                  <!-- Mnemonic / Root (Placeholder/Optional) -->
+                  <div v-if="currentWord.mnemonic" class="mb-6">
+                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">助记</h4>
+                     <p class="text-gray-600 text-sm select-text cursor-text" @click.stop>{{ currentWord.mnemonic }}</p>
+                  </div>
+               </div>
+            </div>
+          </div>
         </div>
       </div>
       </div>
@@ -235,6 +255,9 @@ const isLoading = ref(false)
 const errorMsg = ref('')
 const currentBookLabel = ref('Loading...')
 const isFlyingOut = ref(false)
+const reviewedWords = ref([])
+const masteredCount = ref(0)
+const initialCount = ref(0)
 
 // Progress tracking
 const todayLearned = ref(0)
@@ -242,6 +265,12 @@ const dailyGoal = ref(20) // Default goal
 
 const isFinished = computed(() => words.value.length > 0 && currentIndex.value >= words.value.length)
 const currentWord = computed(() => words.value[currentIndex.value] || {})
+
+const notebookWords = ref(new Map())
+const isStarred = computed(() => {
+  if (!currentWord.value || !currentWord.value.word) return false
+  return notebookWords.value.has(currentWord.value.word)
+})
 
 // Utilities
 const getUserId = () => {
@@ -255,47 +284,64 @@ const getUserId = () => {
 
 // Computed Properties for Content
 const clozeSentence = computed(() => {
-  if (!currentWord.value.example) return null
+  if (!currentWord.value.exampleEn) return null
   const word = currentWord.value.word
   // Create a regex to find the word (case insensitive)
   const regex = new RegExp(`\\b${word}\\w*\\b`, 'gi') 
-  return currentWord.value.example.replace(regex, '______')
+  return currentWord.value.exampleEn.replace(regex, '______')
 })
 
 const highlightedExample = computed(() => {
-  if (!currentWord.value.example) return ''
+  if (!currentWord.value.exampleEn) return ''
   const word = currentWord.value.word
   const regex = new RegExp(`(${word}\\w*)`, 'gi')
-  return currentWord.value.example.replace(regex, '<span class="text-indigo-600 font-bold bg-indigo-50 px-1 rounded">$1</span>')
+  return currentWord.value.exampleEn.replace(regex, '<span class="text-indigo-600 font-bold bg-indigo-50 px-1 rounded">$1</span>')
 })
 
-// Audio
-const playAudio = () => {
-  if (!currentWord.value.word) return
-  window.speechSynthesis.cancel() // Stop previous
-  const u = new SpeechSynthesisUtterance(currentWord.value.word)
-  u.lang = 'en-US'
-  u.rate = 0.9
-  window.speechSynthesis.speak(u)
+const handleCardClick = () => {
+  if (window.getSelection().toString().length > 0) return
+  if (!isFlipped.value && !isFinished.value) {
+    flipCard()
+  }
 }
 
 // Actions
 const flipCard = () => {
   if (isFinished.value) return
   isFlipped.value = !isFlipped.value
-  if (isFlipped.value) {
-    // Maybe auto play audio on flip? User didn't ask, but it's nice. 
-    // Let's stick to manual click as per request "clickable speaker icon"
-  }
 }
 
 const handleResult = async (type) => {
   // type: UNKNOWN, FUZZY, MASTERED
   if (isFlyingOut.value) return
 
+  const currentW = words.value[currentIndex.value] // Capture current word before index change
+
   // 1. Play fly out animation
   isFlyingOut.value = true
   
+  // Logic for UNKNOWN (Forgot)
+  if (type === 'UNKNOWN') {
+      // Do NOT increment progress
+      // Do NOT checkin yet
+      
+      // Wait for animation then move to end
+      setTimeout(() => {
+          // Push to the end of the list so it appears again
+          words.value.push(currentW)
+          
+          isFlipped.value = false 
+          isFlyingOut.value = false
+          currentIndex.value++
+      }, 500)
+      return
+  }
+
+  // Logic for Known/Fuzzy
+  // Add to reviewed list
+  reviewedWords.value.push(currentW)
+  masteredCount.value++
+
   // 2. Track stats (Optimistic update)
   todayLearned.value++
 
@@ -304,7 +350,8 @@ const handleResult = async (type) => {
     const userId = getUserId()
     // Map type to logic if needed, for now we just checkin
     // In a real app, we'd send the 'quality' of recall (0-5)
-    await axios.post('/api/study/checkin', { userId: userId, type: 'VOCAB' })
+    console.log("Checkin wordId:", currentW.id, "userId:", userId)
+    await axios.post('/api/study/checkin', { userId: userId, type: 'VOCAB', wordId: currentW.id })
   } catch (e) {
     console.error("Checkin failed", e)
   }
@@ -314,34 +361,59 @@ const handleResult = async (type) => {
     isFlipped.value = false // Reset flip state instantly while invisible/flying
     isFlyingOut.value = false
     currentIndex.value++
-    
-    // Auto play audio for next word? 
-    // Usually good apps do this. Let's do it if not finished.
-    if (!isFinished.value) {
-       setTimeout(() => playAudio(), 300)
-    }
   }, 500) // Match duration-500
 }
 
-const addToNotebook = async () => {
+const fetchNotebookWords = async () => {
   try {
-    const word = currentWord.value
     const userId = getUserId()
-
-    const res = await axios.post('/api/notebook/add', {
-      userId: userId,
-      word: word.word,
-      translate: word.translate,
-      phonetic: word.phonetic || ''
-    })
-    
-    if (res.data.success) {
-      // Visual feedback handled by icon color toggle logic if we had reactive state for it
-      // For now, let's just show a quick toast or console log
-      console.log('Added to notebook')
+    const res = await axios.get(`/api/notebook?userId=${userId}`)
+    if (res.data.success && res.data.words) {
+      const map = new Map()
+      res.data.words.forEach(w => {
+        map.set(w.word, w.id)
+      })
+      notebookWords.value = map
     }
   } catch (e) {
-    console.error("Failed to add to notebook", e)
+    console.error("Failed to fetch notebook words", e)
+  }
+}
+
+const toggleNotebook = async () => {
+  const word = currentWord.value
+  if (!word || !word.word) return
+  
+  const userId = getUserId()
+  
+  if (isStarred.value) {
+      // Remove
+      const notebookId = notebookWords.value.get(word.word)
+      if (!notebookId) return
+      
+      try {
+          const res = await axios.delete(`/api/notebook/${notebookId}`)
+          if (res.data.success) {
+              notebookWords.value.delete(word.word)
+          }
+      } catch (e) {
+          console.error("Failed to remove from notebook", e)
+      }
+  } else {
+      // Add
+      try {
+          const res = await axios.post('/api/notebook/add', {
+              userId: userId,
+              word: word.word,
+              translate: word.translate,
+              phonetic: word.phonetic || ''
+          })
+          if (res.data.success) {
+              notebookWords.value.set(word.word, res.data.id)
+          }
+      } catch (e) {
+          console.error("Failed to add to notebook", e)
+      }
   }
 }
 
@@ -349,11 +421,28 @@ const fetchWords = async () => {
   isLoading.value = true
   errorMsg.value = ''
   try {
-    const res = await axios.get(`/api/words/CURRENT?limit=20`)
+    const limit = parseInt(localStorage.getItem('wordsPerGroup')) || 20
+    const userId = getUserId()
+    const res = await axios.get(`/api/words/CURRENT?limit=${limit}&userId=${userId}`)
     
     if (res.data.error) throw new Error(res.data.error)
     
-    words.value = Array.isArray(res.data) ? res.data : []
+    const fetchedWords = Array.isArray(res.data) ? res.data : []
+    console.log('Fetched words:', fetchedWords)
+
+    // Filter out invalid words (e.g. missing word text)
+    const validWords = fetchedWords.filter(w => w && w.word)
+
+    if (fetchedWords.length > 0 && validWords.length === 0) {
+        console.error('All words are invalid:', fetchedWords[0])
+        const debugInfo = fetchedWords[0] ? JSON.stringify(fetchedWords[0]) : 'null'
+        errorMsg.value = `数据格式异常: ${debugInfo}`
+        return
+    }
+
+    words.value = validWords
+    initialCount.value = words.value.length
+    masteredCount.value = 0
     
     if (words.value.length === 0) {
         errorMsg.value = "当前词书暂无内容，请检查数据库。"
@@ -370,7 +459,6 @@ const fetchWords = async () => {
        */
     }
     
-    const userId = getUserId()
     const userRes = await axios.get(`/api/user/stats?userId=${userId}`)
     const book = userRes.data.user.currentBook || 'CET4'
     currentBookLabel.value = book === 'CET4' ? '四级词汇' : (book === 'CET6' ? '六级词汇' : '考研词汇')
@@ -382,11 +470,6 @@ const fetchWords = async () => {
     currentIndex.value = 0
     isFlipped.value = false
     
-    // Auto play first word
-    if (words.value.length > 0) {
-      setTimeout(() => playAudio(), 500)
-    }
-
   } catch (e) {
     console.error("Failed to fetch words", e)
     errorMsg.value = "数据加载异常"
@@ -396,6 +479,8 @@ const fetchWords = async () => {
 }
 
 const reset = () => {
+  reviewedWords.value = []
+  masteredCount.value = 0
   fetchWords()
 }
 
@@ -410,10 +495,16 @@ const handleKeydown = (e) => {
     if (e.key === '1') handleResult('UNKNOWN')
     if (e.key === '2') handleResult('FUZZY')
     if (e.key === '3') handleResult('MASTERED')
+  } else {
+    // Add shortcut 'S' for starring
+    if (e.code === 'KeyS') {
+        toggleNotebook()
+    }
   }
 }
 
 onMounted(() => {
+  fetchNotebookWords()
   fetchWords()
   window.addEventListener('keydown', handleKeydown)
 })
@@ -465,7 +556,7 @@ onUnmounted(() => {
     opacity: 1;
   }
   100% {
-    transform: rotateY(0deg) scale(0.8) translateY(-100px);
+    transform: rotateY(180deg) translateY(-50px);
     opacity: 0;
   }
 }

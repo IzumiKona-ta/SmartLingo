@@ -8,6 +8,8 @@ import com.smartlingo.entity.GraduateWord;
 import com.smartlingo.mapper.Cet4Mapper;
 import com.smartlingo.mapper.Cet6Mapper;
 import com.smartlingo.mapper.GraduateMapper;
+import com.smartlingo.entity.StudyLog;
+import com.smartlingo.mapper.StudyLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,17 +31,66 @@ public class WordController {
     private GraduateMapper graduateMapper;
 
     @Autowired
+    private StudyLogMapper studyLogMapper;
+
+    @Autowired
     private com.smartlingo.mapper.UserMapper userMapper;
 
     @GetMapping("/{type}")
-    public Object getWords(@PathVariable String type, @RequestParam(defaultValue = "20") int limit) {
+    public Object getWords(@PathVariable String type, @RequestParam(defaultValue = "20") int limit, @RequestParam(required = false) Long userId) {
         try {
             // Handle "CURRENT" type which means fetch based on user's selection
             if ("CURRENT".equalsIgnoreCase(type)) {
-                 // For demo, we hardcode userId 1. In real app, get from session/token
-                 com.smartlingo.entity.User user = userMapper.selectById(1L);
+                 if (userId == null) {
+                    userId = 1L; // Fallback only if not provided
+                 }
+                 com.smartlingo.entity.User user = userMapper.selectById(userId);
                  String book = (user != null && user.getCurrentBook() != null) ? user.getCurrentBook() : "CET4";
-                 return getWords(book, limit);
+                 
+                 // Fetch learned word IDs to exclude
+                 List<StudyLog> allLogs = studyLogMapper.selectList(new QueryWrapper<StudyLog>().eq("user_id", userId));
+                System.out.println("DEBUG: Total logs for user " + userId + ": " + allLogs.size());
+                for (StudyLog log : allLogs) {
+                    System.out.println("DEBUG Log: id=" + log.getId() + ", wordId=" + log.getWordId() + ", type=" + log.getActivityType());
+                }
+
+                List<StudyLog> logs = studyLogMapper.selectList(new QueryWrapper<StudyLog>()
+                        .eq("user_id", userId)
+                        .eq("activity_type", "VOCAB")
+                        .isNotNull("word_id"));
+                 
+                 List<Long> learnedIds = logs.stream()
+                        .map(StudyLog::getWordId)
+                        .distinct()
+                        .collect(Collectors.toList());
+                 
+                 // Debugging
+                 System.out.println("Fetching words for user " + userId + ". Learned count: " + learnedIds.size());
+                 if (!learnedIds.isEmpty()) {
+                     System.out.println("Learned IDs: " + learnedIds);
+                 }
+                 
+                 // Construct query: WHERE id NOT IN (...) ORDER BY id ASC LIMIT limit
+                 QueryWrapper wrapper = new QueryWrapper<>();
+                 if (!learnedIds.isEmpty()) {
+                     wrapper.notIn("id", learnedIds);
+                 }
+                 wrapper.last("ORDER BY id ASC LIMIT " + limit);
+                 
+                 List<?> words = Collections.emptyList();
+                 if ("CET4".equalsIgnoreCase(book)) {
+                     words = cet4Mapper.selectList(wrapper);
+                 } else if ("CET6".equalsIgnoreCase(book)) {
+                     words = cet6Mapper.selectList(wrapper);
+                 } else if ("KAOYAN".equalsIgnoreCase(book) || "GRADUATE".equalsIgnoreCase(book)) {
+                     words = graduateMapper.selectList(wrapper);
+                 }
+                 
+                 System.out.println("Returned words count: " + words.size());
+                 if (!words.isEmpty()) {
+                     System.out.println("First word sample: " + words.get(0));
+                 }
+                 return words;
             }
     
             // Use ORDER BY RAND() to fetch random words

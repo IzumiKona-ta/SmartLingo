@@ -7,6 +7,7 @@ import Settings from '@/views/Settings.vue'
 import Login from '@/views/Login.vue'
 import Register from '@/views/Register.vue'
 import Notebook from '@/views/Notebook.vue'
+import ExamResources from '@/views/ExamResources.vue'
 
 const routes = [
   {
@@ -37,6 +38,11 @@ const routes = [
         path: 'study',
         name: 'VocabStudy',
         component: VocabStudy
+      },
+      {
+        path: 'resources',
+        name: 'ExamResources',
+        component: ExamResources
       },
       {
         path: 'stats',

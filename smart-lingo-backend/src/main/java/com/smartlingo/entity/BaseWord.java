@@ -36,4 +36,25 @@ public class BaseWord {
 
     @TableField("tags")
     private String tags;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getWord() { return word; }
+    public void setWord(String word) { this.word = word; }
+    public String getTranslate() { return translate; }
+    public void setTranslate(String translate) { this.translate = translate; }
+    public String getPhonetic() { return phonetic; }
+    public void setPhonetic(String phonetic) { this.phonetic = phonetic; }
+    public String getDefinitionEn() { return definitionEn; }
+    public void setDefinitionEn(String definitionEn) { this.definitionEn = definitionEn; }
+    public String getExampleEn() { return exampleEn; }
+    public void setExampleEn(String exampleEn) { this.exampleEn = exampleEn; }
+    public String getExampleCn() { return exampleCn; }
+    public void setExampleCn(String exampleCn) { this.exampleCn = exampleCn; }
+    public String getMnemonic() { return mnemonic; }
+    public void setMnemonic(String mnemonic) { this.mnemonic = mnemonic; }
+    public String getCloze() { return cloze; }
+    public void setCloze(String cloze) { this.cloze = cloze; }
+    public String getTags() { return tags; }
+    public void setTags(String tags) { this.tags = tags; }
 }

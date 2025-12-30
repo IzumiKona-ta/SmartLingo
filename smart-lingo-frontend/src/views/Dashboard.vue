@@ -45,19 +45,22 @@
         </div>
       </div>
       
-      <!-- 生词本入口 -->
-      <router-link to="/notebook" class="mt-6 flex items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors w-full md:w-auto md:inline-flex">
-         <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
-           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-             <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-           </svg>
-         </div>
-         <div class="text-left">
-            <p class="text-sm font-bold text-gray-800">生词本</p>
-            <p class="text-xs text-gray-500">复习收藏的难点词汇</p>
-         </div>
-      </router-link>
-    </div>
+      <!-- 功能入口区域 -->
+       <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+         <!-- 生词本入口 -->
+         <router-link to="/notebook" class="flex items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer transition-colors">
+            <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 mr-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+              </svg>
+            </div>
+            <div class="text-left">
+               <p class="text-sm font-bold text-gray-800">生词本</p>
+               <p class="text-xs text-gray-500">复习收藏的难点词汇</p>
+            </div>
+         </router-link>
+       </div>
+     </div>
 
     <!-- 我的数据 -->
     <div>
