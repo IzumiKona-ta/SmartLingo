@@ -1,20 +1,20 @@
 <template>
-  <div class="min-h-screen bg-gray-50 font-sans text-gray-800">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-800 dark:text-gray-100 transition-colors duration-200">
     <div class="max-w-6xl mx-auto px-6 py-8">
       <!-- Header -->
       <div class="flex items-center justify-between mb-8">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">真题资源</h1>
-          <p class="text-gray-500 mt-2">历年英语真题试卷下载与预览</p>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">真题资源</h1>
+          <p class="text-gray-500 dark:text-gray-400 mt-2">历年英语真题试卷下载与预览</p>
         </div>
-        <button @click="router.push('/')" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors">
+        <button @click="router.push('/')" class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
           返回看板
         </button>
       </div>
 
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center py-12">
-        <div class="animate-spin rounded-full h-8 w-8 border-4 border-indigo-100 border-t-indigo-600"></div>
+        <div class="animate-spin rounded-full h-8 w-8 border-4 border-indigo-100 dark:border-gray-700 border-t-indigo-600 dark:border-t-indigo-500"></div>
       </div>
 
       <!-- Content -->
@@ -56,34 +56,34 @@
 
       <!-- Empty State -->
       <div v-if="!loading && files.length === 0" class="text-center py-12">
-        <p class="text-gray-400">暂无资源文件</p>
+        <p class="text-gray-400 dark:text-gray-500">暂无资源文件</p>
       </div>
     </div>
 
     <!-- PDF Preview Modal -->
     <div v-if="showPreview" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 md:p-8">
-      <div class="bg-white w-full h-full max-w-6xl rounded-2xl shadow-2xl flex flex-col overflow-hidden animate__animated animate__fadeInUp">
+      <div class="bg-white dark:bg-gray-800 w-full h-full max-w-6xl rounded-2xl shadow-2xl flex flex-col overflow-hidden animate__animated animate__fadeInUp">
         <!-- Modal Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
            <div class="flex items-center space-x-3">
-              <div class="p-2 bg-orange-100 text-orange-600 rounded-lg">
+              <div class="p-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
                 </svg>
               </div>
               <div>
-                <h3 class="font-bold text-gray-800">{{ currentFile?.name }}</h3>
-                <p class="text-xs text-gray-500">在线预览模式</p>
+                <h3 class="font-bold text-gray-800 dark:text-white">{{ currentFile?.name }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">在线预览模式</p>
               </div>
            </div>
            <div class="flex items-center space-x-3">
-              <a :href="getFileUrl(currentFile?.url)" download class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center">
+              <a :href="getFileUrl(currentFile?.url)" download class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
                 下载文件
               </a>
-              <button @click="showPreview = false" class="p-2 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition-colors">
+              <button @click="showPreview = false" class="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -91,7 +91,7 @@
            </div>
         </div>
         <!-- PDF Viewer (Iframe) -->
-        <div class="flex-1 bg-gray-100 relative">
+        <div class="flex-1 bg-gray-100 dark:bg-gray-900 relative">
            <iframe 
              v-if="currentFile"
              :src="getFileUrl(currentFile.url)" 

@@ -1,58 +1,58 @@
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
-      <h2 class="text-2xl font-bold text-gray-800">数据统计</h2>
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white">数据统计</h2>
       <div class="flex space-x-2">
         <el-button-group>
-          <el-button type="primary" plain>本周</el-button>
-          <el-button plain>本月</el-button>
-          <el-button plain>全年</el-button>
+          <el-button type="primary" plain class="dark:bg-indigo-900/50 dark:border-indigo-700 dark:text-indigo-300">本周</el-button>
+          <el-button plain class="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">本月</el-button>
+          <el-button plain class="dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300">全年</el-button>
         </el-button-group>
       </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-gray-500 text-sm">累计学习时长</h3>
-          <el-icon class="text-indigo-500 bg-indigo-50 p-2 rounded-lg box-content" :size="20"><Timer /></el-icon>
+          <h3 class="text-gray-500 dark:text-gray-400 text-sm">累计学习时长</h3>
+          <el-icon class="text-indigo-500 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 p-2 rounded-lg box-content" :size="20"><Timer /></el-icon>
         </div>
         <div class="flex items-end space-x-2">
-          <span class="text-3xl font-bold text-gray-800">{{ stats.totalDuration }}</span>
-          <span class="text-gray-500 mb-1">小时</span>
+          <span class="text-3xl font-bold text-gray-800 dark:text-white">{{ stats.totalDuration }}</span>
+          <span class="text-gray-500 dark:text-gray-400 mb-1">小时</span>
         </div>
-        <div class="mt-4 text-sm text-green-600 flex items-center">
+        <div class="mt-4 text-sm text-green-600 dark:text-green-400 flex items-center">
           <el-icon><Top /></el-icon>
           <span>较上周 +{{ stats.durationGrowth }}%</span>
         </div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-gray-500 text-sm">掌握单词量</h3>
-          <el-icon class="text-green-500 bg-green-50 p-2 rounded-lg box-content" :size="20"><Check /></el-icon>
+          <h3 class="text-gray-500 dark:text-gray-400 text-sm">掌握单词量</h3>
+          <el-icon class="text-green-500 dark:text-green-400 bg-green-50 dark:bg-green-900/30 p-2 rounded-lg box-content" :size="20"><Check /></el-icon>
         </div>
         <div class="flex items-end space-x-2">
-          <span class="text-3xl font-bold text-gray-800">{{ stats.masteryCount }}</span>
-          <span class="text-gray-500 mb-1">个</span>
+          <span class="text-3xl font-bold text-gray-800 dark:text-white">{{ stats.masteryCount }}</span>
+          <span class="text-gray-500 dark:text-gray-400 mb-1">个</span>
         </div>
-        <div class="mt-4 text-sm text-green-600 flex items-center">
+        <div class="mt-4 text-sm text-green-600 dark:text-green-400 flex items-center">
           <el-icon><Top /></el-icon>
           <span>较上周 +{{ stats.masteryGrowth }}</span>
         </div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-gray-500 text-sm">学习连续打卡</h3>
-          <el-icon class="text-orange-500 bg-orange-50 p-2 rounded-lg box-content" :size="20"><Calendar /></el-icon>
+          <h3 class="text-gray-500 dark:text-gray-400 text-sm">学习连续打卡</h3>
+          <el-icon class="text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 p-2 rounded-lg box-content" :size="20"><Calendar /></el-icon>
         </div>
         <div class="flex items-end space-x-2">
-          <span class="text-3xl font-bold text-gray-800">{{ stats.streakDays }}</span>
-          <span class="text-gray-500 mb-1">天</span>
+          <span class="text-3xl font-bold text-gray-800 dark:text-white">{{ stats.streakDays }}</span>
+          <span class="text-gray-500 dark:text-gray-400 mb-1">天</span>
         </div>
-        <div class="mt-4 text-sm text-gray-500">
+        <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
           <span>历史最高: {{ stats.streakDays + 2 }}天</span>
         </div>
       </div>
@@ -60,8 +60,8 @@
 
     <!-- Charts Section -->
     <div class="grid grid-cols-1 gap-6">
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 class="font-bold text-gray-800 mb-4">学习趋势</h3>
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <h3 class="font-bold text-gray-800 dark:text-white mb-4">学习趋势</h3>
         <div ref="trendChartRef" class="h-64 w-full"></div>
       </div>
     </div>

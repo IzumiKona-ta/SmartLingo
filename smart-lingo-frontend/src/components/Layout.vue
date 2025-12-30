@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-gray-50 font-sans">
+  <div class="flex h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-200">
     <!-- Mobile Sidebar Overlay -->
     <div 
       v-if="isMobileMenuOpen" 
@@ -10,17 +10,17 @@
     <!-- Sidebar -->
     <aside 
       :class="[
-        'fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 flex flex-col',
+        'fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 shadow-xl transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:inset-0 flex flex-col',
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
     >
       <!-- Logo -->
-      <div class="h-16 flex items-center justify-center border-b border-gray-100 bg-white">
+      <div class="h-16 flex items-center justify-center border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 transition-colors">
         <div class="flex items-center space-x-2">
           <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
             <span class="text-white font-bold text-lg">S</span>
           </div>
-          <h1 class="text-xl font-bold text-gray-800 tracking-wide">SmartLingo</h1>
+          <h1 class="text-xl font-bold text-gray-800 dark:text-white tracking-wide">SmartLingo</h1>
         </div>
       </div>
 
@@ -39,8 +39,8 @@
                 class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden cursor-pointer"
                 :class="[
                   (item.path === '/' ? isExactActive : isActive) 
-                    ? 'bg-indigo-50 text-indigo-600 shadow-sm font-semibold' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-indigo-600'
+                    ? 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm font-semibold' 
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-indigo-600 dark:hover:text-indigo-400'
                 ]"
               >
                 <component 
@@ -61,17 +61,17 @@
       </nav>
 
       <!-- User Profile -->
-      <div class="p-4 border-t border-gray-100 bg-gray-50">
-        <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer group relative">
-          <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden text-indigo-600 font-bold shadow-sm border border-indigo-200">
+      <div class="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 transition-colors">
+        <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white dark:hover:bg-gray-700 transition-colors cursor-pointer group relative">
+          <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center overflow-hidden text-indigo-600 dark:text-indigo-400 font-bold shadow-sm border border-indigo-200 dark:border-indigo-700">
             <img v-if="avatar" :src="getAvatarUrl(avatar)" class="w-full h-full object-cover" alt="User" />
             <span v-else>{{ (nickname || username)[0]?.toUpperCase() || 'U' }}</span>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-gray-800 truncate">{{ nickname || username }}</p>
+            <p class="text-sm font-semibold text-gray-800 dark:text-white truncate">{{ nickname || username }}</p>
             <div class="flex items-center mt-0.5">
               <div class="w-2 h-2 rounded-full bg-green-500 mr-1.5"></div>
-              <p class="text-xs text-gray-500">在线</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">在线</p>
             </div>
           </div>
           
@@ -88,19 +88,19 @@
     <!-- Main Content Wrapper -->
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
       <!-- Mobile Header -->
-      <header class="md:hidden bg-white shadow-sm h-16 flex items-center justify-between px-4 z-10">
+      <header class="md:hidden bg-white dark:bg-gray-800 shadow-sm h-16 flex items-center justify-between px-4 z-10 transition-colors">
         <button 
           @click="isMobileMenuOpen = true"
-          class="text-gray-600 hover:text-indigo-600 focus:outline-none"
+          class="text-gray-600 dark:text-gray-200 hover:text-indigo-600 focus:outline-none"
         >
           <el-icon :size="24"><Menu /></el-icon>
         </button>
-        <span class="font-bold text-gray-800">SmartLingo</span>
+        <span class="font-bold text-gray-800 dark:text-white">SmartLingo</span>
         <div class="w-8"></div> <!-- Spacer for centering -->
       </header>
 
       <!-- Main Page Content -->
-      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 md:p-8 relative scroll-smooth">
+      <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 md:p-8 relative scroll-smooth transition-colors">
          <router-view v-slot="{ Component }">
             <transition name="fade-transform" mode="out-in">
               <component :is="Component" />

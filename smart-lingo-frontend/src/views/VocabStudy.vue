@@ -1,13 +1,13 @@
 ·<template>
-  <div class="h-screen bg-gray-50 flex flex-col items-center font-sans text-gray-800 overflow-hidden relative">
+  <div class="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center font-sans text-gray-800 dark:text-gray-100 overflow-hidden relative transition-colors duration-200">
     
     <!-- Top Bar: Progress & Status -->
     <div class="flex-none w-full max-w-3xl px-6 pt-8 pb-4 flex items-center justify-between z-20">
        <div class="flex items-center space-x-2">
           <span class="w-2 h-8 bg-indigo-600 rounded-full"></span>
           <div>
-            <h1 class="text-xl font-bold text-gray-900 tracking-tight">单词特训</h1>
-            <p class="text-xs text-gray-500 font-medium tracking-wide uppercase">{{ currentBookLabel }}</p>
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">单词特训</h1>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide uppercase">{{ currentBookLabel }}</p>
           </div>
        </div>
 
@@ -16,7 +16,7 @@
          <div class="flex justify-end text-xs font-bold text-gray-400 mb-1">
            <span>{{ masteredCount }} / {{ initialCount }}</span>
          </div>
-         <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+         <div class="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
            <div 
              class="h-full bg-indigo-500 transition-all duration-500 ease-out"
              :style="{ width: (initialCount > 0 ? (masteredCount / initialCount) * 100 : 0) + '%' }"
@@ -27,7 +27,7 @@
        <div class="flex items-center space-x-3">
          <div class="flex flex-col items-end">
              <span class="text-xs text-gray-400 font-bold uppercase">Streak</span>
-             <span class="text-lg font-black text-indigo-600 leading-none">3 <span class="text-xs">DAYS</span></span>
+             <span class="text-lg font-black text-indigo-600 dark:text-indigo-400 leading-none">3 <span class="text-xs">DAYS</span></span>
          </div>
        </div>
     </div>
@@ -105,21 +105,21 @@
           >
             <!-- FRONT FACE -->
             <div 
-              class="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-2xl flex flex-col items-center justify-center p-8 border border-gray-100 overflow-hidden"
+              class="absolute inset-0 backface-hidden bg-white dark:bg-gray-800 rounded-3xl shadow-2xl flex flex-col items-center justify-center p-8 border border-gray-100 dark:border-gray-700 overflow-hidden"
               :style="{ zIndex: isFlipped ? 0 : 10, transform: isFlipped ? 'rotateY(0deg)' : 'rotateY(0deg) translateZ(1px)' }"
             >
                <!-- Decorative Background -->
-               <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 opacity-50 pointer-events-none"></div>
+               <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/30 dark:from-indigo-900/20 dark:to-purple-900/20 opacity-50 pointer-events-none"></div>
                
                <!-- Notebook Button -->
                <button 
                  @click.stop="toggleNotebook" 
-                 class="absolute top-6 right-6 p-3 rounded-full hover:bg-gray-100 transition-colors z-20 group/star"
-                 :class="{ 'bg-yellow-50': isStarred }"
+                 class="absolute top-6 right-6 p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-20 group/star"
+                 :class="{ 'bg-yellow-50 dark:bg-yellow-900/20': isStarred }"
                >
                  <svg xmlns="http://www.w3.org/2000/svg" 
                    class="h-6 w-6 transition-colors" 
-                   :class="isStarred ? 'text-yellow-400 fill-current' : 'text-gray-300 group-hover/star:text-yellow-400'"
+                   :class="isStarred ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-600 group-hover/star:text-yellow-400'"
                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                  </svg>
@@ -127,63 +127,63 @@
     
                <div class="flex-1 flex flex-col items-center justify-center w-full z-10">
                   <!-- Word -->
-                  <h2 class="text-6xl font-black text-gray-800 mb-4 tracking-tight text-center break-words w-full select-text cursor-text" @click.stop>{{ currentWord.word }}</h2>
+                  <h2 class="text-6xl font-black text-gray-800 dark:text-white mb-4 tracking-tight text-center break-words w-full select-text cursor-text" @click.stop>{{ currentWord.word }}</h2>
                   
                   <!-- Phonetic -->
                   <div class="flex items-center space-x-3 mb-12">
-                     <span v-if="currentWord.phonetic" class="text-xl text-gray-500 font-mono tracking-wider select-text cursor-text" @click.stop>/{{ currentWord.phonetic }}/</span>
+                     <span v-if="currentWord.phonetic" class="text-xl text-gray-500 dark:text-gray-400 font-mono tracking-wider select-text cursor-text" @click.stop>/{{ currentWord.phonetic }}/</span>
                   </div>
     
                   <!-- Cloze Sentence (If available) -->
-                  <div v-if="clozeSentence" class="w-full p-6 bg-indigo-50/50 rounded-2xl text-center">
-                     <p class="text-lg text-gray-600 leading-relaxed font-serif select-text cursor-text" @click.stop>
+                  <div v-if="clozeSentence" class="w-full p-6 bg-indigo-50/50 dark:bg-indigo-900/30 rounded-2xl text-center">
+                     <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed font-serif select-text cursor-text" @click.stop>
                        "{{ clozeSentence }}"
                      </p>
                   </div>
-                  <div v-else class="w-full p-6 text-center text-gray-300 italic">
+                  <div v-else class="w-full p-6 text-center text-gray-300 dark:text-gray-600 italic">
                      (暂无例句)
                   </div>
                </div>
     
-               <div class="text-gray-400 text-sm font-medium animate-pulse mt-4">
+               <div class="text-gray-400 dark:text-gray-500 text-sm font-medium animate-pulse mt-4">
                   点击卡片或按空格查看答案
                </div>
             </div>
     
             <!-- BACK FACE -->
             <div 
-              class="absolute inset-0 backface-hidden bg-white rounded-3xl shadow-2xl flex flex-col p-8 border border-gray-100 overflow-hidden"
+              class="absolute inset-0 backface-hidden bg-white dark:bg-gray-800 rounded-3xl shadow-2xl flex flex-col p-8 border border-gray-100 dark:border-gray-700 overflow-hidden"
               style="backface-visibility: hidden; transform: rotateY(180deg);"
             >
                <!-- Decorative Background -->
-               <div class="absolute inset-0 bg-gradient-to-tl from-green-50/50 to-blue-50/30 opacity-50 pointer-events-none"></div>
+               <div class="absolute inset-0 bg-gradient-to-tl from-green-50/50 to-blue-50/30 dark:from-green-900/20 dark:to-blue-900/20 opacity-50 pointer-events-none"></div>
     
                <!-- Content -->
                <div class="flex-1 overflow-y-auto z-10 custom-scrollbar">
                   <!-- Header -->
-                  <div class="flex items-end justify-between border-b border-gray-100 pb-4 mb-6">
-                     <h3 class="text-3xl font-bold text-gray-800 select-text cursor-text" @click.stop>{{ currentWord.word }}</h3>
+                  <div class="flex items-end justify-between border-b border-gray-100 dark:border-gray-700 pb-4 mb-6">
+                     <h3 class="text-3xl font-bold text-gray-800 dark:text-white select-text cursor-text" @click.stop>{{ currentWord.word }}</h3>
                   </div>
     
                   <!-- Translation -->
                   <div class="mb-8">
-                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">中文释义</h4>
-                     <p class="text-xl font-medium text-gray-800 leading-relaxed select-text cursor-text" @click.stop>{{ currentWord.translate }}</p>
+                     <h4 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">中文释义</h4>
+                     <p class="text-xl font-medium text-gray-800 dark:text-gray-200 leading-relaxed select-text cursor-text" @click.stop>{{ currentWord.translate }}</p>
                   </div>
     
                   <!-- Full Example -->
                   <div v-if="currentWord.exampleEn" class="mb-8">
-                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">例句</h4>
-                     <div class="p-4 bg-gray-50 rounded-xl border-l-4 border-indigo-400">
-                        <p class="text-gray-700 italic leading-relaxed select-text cursor-text" v-html="highlightedExample" @click.stop></p>
-                        <p v-if="currentWord.exampleCn" class="text-gray-500 text-sm mt-2 select-text cursor-text" @click.stop>{{ currentWord.exampleCn }}</p>
+                     <h4 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">例句</h4>
+                     <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border-l-4 border-indigo-400">
+                        <p class="text-gray-700 dark:text-gray-300 italic leading-relaxed select-text cursor-text" v-html="highlightedExample" @click.stop></p>
+                        <p v-if="currentWord.exampleCn" class="text-gray-500 dark:text-gray-400 text-sm mt-2 select-text cursor-text" @click.stop>{{ currentWord.exampleCn }}</p>
                      </div>
                   </div>
     
                   <!-- Mnemonic / Root (Placeholder/Optional) -->
                   <div v-if="currentWord.mnemonic" class="mb-6">
-                     <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">助记</h4>
-                     <p class="text-gray-600 text-sm select-text cursor-text" @click.stop>{{ currentWord.mnemonic }}</p>
+                     <h4 class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">助记</h4>
+                     <p class="text-gray-600 dark:text-gray-400 text-sm select-text cursor-text" @click.stop>{{ currentWord.mnemonic }}</p>
                   </div>
                </div>
             </div>
@@ -193,44 +193,43 @@
       </div>
     </div>
 
-    <!-- Bottom Action Bar (Only visible when flipped) -->
-    <div class="flex-none h-32 w-full max-w-lg mb-6 flex items-center justify-center z-20">
-       <transition 
-          enter-active-class="animate__animated animate__fadeInUp"
-          leave-active-class="animate__animated animate__fadeOutDown"
-       >
-         <div v-if="isFlipped && !isFinished" class="grid grid-cols-3 gap-8 w-full px-8">
-            <button 
-              @click="handleResult('UNKNOWN')"
-              class="flex flex-col items-center justify-center group focus:outline-none"
-            >
-              <div class="w-16 h-16 rounded-full bg-red-100 text-red-500 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-red-500 group-hover:text-white transition-all duration-300 border-4 border-white ring-2 ring-red-50">
-                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </div>
-              <span class="mt-3 text-sm font-bold text-gray-400 group-hover:text-red-500 transition-colors">忘记 (1)</span>
-            </button>
+    <!-- 底部控制栏 -->
+    <div class="w-full max-w-xl px-6 pb-8 z-10 grid grid-cols-3 gap-4">
+      <button 
+        @click="handleResult('UNKNOWN')"
+        class="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 active:scale-95 flex flex-col items-center justify-center h-24"
+      >
+        <div class="absolute inset-0 bg-red-50 dark:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="relative flex flex-col items-center gap-1">
+            <span class="text-2xl group-hover:scale-110 transition-transform">🤔</span>
+            <span class="font-bold text-gray-700 dark:text-gray-200 group-hover:text-red-500 dark:group-hover:text-red-400 text-sm">不认识</span>
+            <span class="text-xs text-gray-400 dark:text-gray-500 scale-75">1</span>
+        </div>
+      </button>
 
-            <button 
-              @click="handleResult('FUZZY')"
-              class="flex flex-col items-center justify-center group focus:outline-none"
-            >
-              <div class="w-16 h-16 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-yellow-500 group-hover:text-white transition-all duration-300 border-4 border-white ring-2 ring-yellow-50">
-                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-              </div>
-              <span class="mt-3 text-sm font-bold text-gray-400 group-hover:text-yellow-500 transition-colors">模糊 (2)</span>
-            </button>
+      <button 
+        @click="handleResult('FUZZY')"
+        class="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 active:scale-95 flex flex-col items-center justify-center h-24"
+      >
+        <div class="absolute inset-0 bg-yellow-50 dark:bg-yellow-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="relative flex flex-col items-center gap-1">
+            <span class="text-2xl group-hover:scale-110 transition-transform">😶</span>
+            <span class="font-bold text-gray-700 dark:text-gray-200 group-hover:text-yellow-500 dark:group-hover:text-yellow-400 text-sm">记不太清</span>
+            <span class="text-xs text-gray-400 dark:text-gray-500 scale-75">2</span>
+        </div>
+      </button>
 
-            <button 
-              @click="handleResult('MASTERED')"
-              class="flex flex-col items-center justify-center group focus:outline-none"
-            >
-              <div class="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:bg-green-500 group-hover:text-white transition-all duration-300 border-4 border-white ring-2 ring-green-50">
-                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-              </div>
-              <span class="mt-3 text-sm font-bold text-gray-400 group-hover:text-green-500 transition-colors">掌握 (3)</span>
-            </button>
-         </div>
-       </transition>
+      <button 
+        @click="handleResult('MASTERED')"
+        class="group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-4 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700 active:scale-95 flex flex-col items-center justify-center h-24"
+      >
+        <div class="absolute inset-0 bg-green-50 dark:bg-green-900/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+        <div class="relative flex flex-col items-center gap-1">
+            <span class="text-2xl group-hover:scale-110 transition-transform">💡</span>
+            <span class="font-bold text-gray-700 dark:text-gray-200 group-hover:text-green-500 dark:group-hover:text-green-400 text-sm">认识</span>
+            <span class="text-xs text-gray-400 dark:text-gray-500 scale-75">3</span>
+        </div>
+      </button>
     </div>
 
   </div>
@@ -315,8 +314,8 @@ const handleResult = async (type) => {
   // 1. Play fly out animation
   isFlyingOut.value = true
   
-  // Logic for UNKNOWN (Forgot)
-  if (type === 'UNKNOWN') {
+  // Logic for UNKNOWN (Forgot) or FUZZY (Not Sure - behaves like Unknown)
+  if (type === 'UNKNOWN' || type === 'FUZZY') {
       // Do NOT increment progress
       // Do NOT checkin yet
       
@@ -494,11 +493,12 @@ const handleKeydown = (e) => {
   if (e.code === 'Space') {
     e.preventDefault() // Prevent scrolling
     flipCard()
-  } else if (isFlipped.value) {
+  } else {
+    // 允许在正面和背面都触发评价
     if (e.key === '1') handleResult('UNKNOWN')
     if (e.key === '2') handleResult('FUZZY')
     if (e.key === '3') handleResult('MASTERED')
-  } else {
+    
     // Add shortcut 'S' for starring
     if (e.code === 'KeyS') {
         toggleNotebook()

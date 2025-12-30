@@ -30,3 +30,19 @@ Thumbs.db
 # Keep specific resource files as requested
 !src/main/resources/
 !sql/
+
+# Ignore User Content & Resources
+resource/
+avatars/
+
+# Ignore Document Files
+*.pdf
+
+# Ignore Image Files (but keep project assets)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+!smart-lingo-frontend/src/assets/
+!smart-lingo-frontend/public/
