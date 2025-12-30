@@ -52,70 +52,46 @@ public class AiController {
                 // 构建真实请求
                 Map<String, Object> aiRequest = new HashMap<>();
                 aiRequest.put("prompt", finalUserMessage);
-                aiRequest.put("stream", true); // 尝试开启流式模式
-
-                RequestCallback requestCallback = requestEntity -> {
-                    new ObjectMapper().writeValue(requestEntity.getBody(), aiRequest);
-                    requestEntity.getHeaders().add("Content-Type", "application/json");
-                };
-
-                ResponseExtractor<Void> responseExtractor = response -> {
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getBody()))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            // 尝试解析各种可能的流式格式
-                            // 1. 如果是 data: 开头的 SSE 格式
-                            if (line.startsWith("data:")) {
-                                String data = line.substring(5).trim();
-                                if ("[DONE]".equals(data)) break;
-                                try {
-                                    // 尝试作为 JSON 解析
-                                    Map map = objectMapper.readValue(data, Map.class);
-                                    // 提取内容字段，常见字段名: content, reply, response, delta
-                                    String content = null;
-                                    if (map.containsKey("reply")) content = (String) map.get("reply");
-                                    else if (map.containsKey("response")) content = (String) map.get("response");
-                                    else if (map.containsKey("content")) content = (String) map.get("content");
-                                    
-                                    // OpenAI 格式: choices[0].delta.content
-                                    if (content == null && map.containsKey("choices")) {
-                                        // 简化处理，略过复杂结构解析，视具体 API 而定
-                                    }
-
-                                    if (content != null) {
-                                        emitter.send(content);
-                                    } else {
-                                        // 如果无法提取，直接发送原始数据作为 fallback (或者为了调试)
-                                        // emitter.send(data); 
-                                    }
-                                } catch (Exception e) {
-                                    // 不是 JSON，可能是纯文本，直接发
-                                    emitter.send(data);
-                                }
-                            } else if (!line.trim().isEmpty()) {
-                                // 2. 可能是纯文本流或非标准格式
-                                // 尝试解析 JSON
-                                try {
-                                     Map map = objectMapper.readValue(line, Map.class);
-                                     String content = null;
-                                     if (map.containsKey("reply")) content = (String) map.get("reply");
-                                     else if (map.containsKey("response")) content = (String) map.get("response");
-                                     
-                                     if (content != null) emitter.send(content);
-                                } catch (Exception e) {
-                                    // 纯文本
-                                    emitter.send(line);
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        emitter.completeWithError(e);
-                    }
-                    return null;
-                };
+                // aiRequest.put("stream", true); // 远程服务流式暂不可用，回退到普通模式
+                
+                // ... (rest of the code)
 
                 // 用户指示端口已改为 8002
-                restTemplate.execute("http://10.138.50.151:8002/agent/chat", HttpMethod.POST, requestCallback, responseExtractor);
+                // 使用 postForObject 以非流式方式获取完整响应
+                Map aiResponse = restTemplate.postForObject("http://10.138.50.151:8002/agent/chat", aiRequest, Map.class);
+                
+                if (aiResponse != null) {
+                    String content = null;
+                    if (aiResponse.containsKey("reply")) content = (String) aiResponse.get("reply");
+                    else if (aiResponse.containsKey("response")) content = (String) aiResponse.get("response");
+                    else if (aiResponse.containsKey("content")) content = (String) aiResponse.get("content");
+                    
+                    if (content != null) {
+                        // 模拟流式打字机效果，并解决换行符截断问题
+                        // 将内容按小块发送，并封装为 JSON 避免 SSE 格式问题
+                        int chunkSize = 5; // 每次发送 5 个字符
+                        for (int i = 0; i < content.length(); i += chunkSize) {
+                            int end = Math.min(content.length(), i + chunkSize);
+                            String chunk = content.substring(i, end);
+                            
+                            Map<String, String> data = new HashMap<>();
+                            data.put("chunk", chunk);
+                            
+                            // Spring 会自动将 Map 转为 JSON 字符串发送: data:{"chunk":"..."}
+                            emitter.send(data, MediaType.APPLICATION_JSON);
+                            
+                            // 稍微延时，制造打字机效果
+                            try {
+                                Thread.sleep(20);
+                            } catch (InterruptedException e) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
+                        }
+                    } else {
+                        emitter.send(aiResponse.toString());
+                    }
+                }
                 emitter.complete();
 
             } catch (Exception e) {

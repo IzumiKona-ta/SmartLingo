@@ -14,12 +14,12 @@
        <!-- Group Progress -->
        <div class="flex-1 mx-8 max-w-xs">
          <div class="flex justify-end text-xs font-bold text-gray-400 mb-1">
-           <span>{{ words.length > 0 ? Math.min(currentIndex + 1, words.length) : 0 }} / {{ words.length }}</span>
+           <span>{{ masteredCount }} / {{ initialCount }}</span>
          </div>
          <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
            <div 
              class="h-full bg-indigo-500 transition-all duration-500 ease-out"
-             :style="{ width: (words.length > 0 ? (Math.min(currentIndex + 1, words.length) / words.length) * 100 : 0) + '%' }"
+             :style="{ width: (initialCount > 0 ? (masteredCount / initialCount) * 100 : 0) + '%' }"
            ></div>
          </div>
        </div>

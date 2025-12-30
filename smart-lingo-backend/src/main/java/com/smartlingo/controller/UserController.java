@@ -7,7 +7,14 @@ import com.smartlingo.mapper.StudyLogMapper;
 import com.smartlingo.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -266,6 +273,60 @@ public class UserController {
         response.put("success", true);
         response.put("message", "Test user 999 created with history");
         response.put("userId", userId);
+        return response;
+    }
+
+    @PostMapping("/update-profile")
+    public Map<String, Object> updateProfile(@RequestBody Map<String, Object> body) {
+        Long userId = ((Number) body.get("userId")).longValue();
+        String nickname = (String) body.get("nickname");
+        String email = (String) body.get("email");
+
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            if (nickname != null) user.setNickname(nickname);
+            if (email != null) user.setEmail(email);
+            userMapper.updateById(user);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        return response;
+    }
+
+    @PostMapping("/upload-avatar")
+    public Map<String, Object> uploadAvatar(@RequestParam("file") MultipartFile file, @RequestParam("userId") Long userId) {
+        Map<String, Object> response = new HashMap<>();
+        if (file.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Please select a file to upload");
+            return response;
+        }
+
+        try {
+            // 1. Save file
+            String uploadDir = "C:/Users/35742/Desktop/workfile/TrainingWeek/avatars/";
+            String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+            // Make unique
+            String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
+            
+            Path path = Paths.get(uploadDir + uniqueFileName);
+            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+
+            // 2. Update User
+            User user = userMapper.selectById(userId);
+            String avatarUrl = "/avatars/" + uniqueFileName;
+            user.setAvatar(avatarUrl);
+            userMapper.updateById(user);
+
+            response.put("success", true);
+            response.put("avatar", avatarUrl);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            response.put("success", false);
+            response.put("message", "Failed to upload file");
+        }
         return response;
     }
 }

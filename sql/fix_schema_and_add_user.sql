@@ -71,3 +71,30 @@ INSERT INTO study_logs (user_id, word_id, activity_type, book_type, points_earne
 INSERT INTO study_logs (user_id, word_id, activity_type, book_type, points_earned, created_at) VALUES (999, 43, 'VOCAB', 'CET4', 10, DATE_SUB(NOW(), INTERVAL 2 DAY));
 INSERT INTO study_logs (user_id, word_id, activity_type, book_type, points_earned, created_at) VALUES (999, 44, 'VOCAB', 'CET4', 10, DATE_SUB(NOW(), INTERVAL 2 DAY));
 INSERT INTO study_logs (user_id, word_id, activity_type, book_type, points_earned, created_at) VALUES (999, 45, 'VOCAB', 'CET4', 10, DATE_SUB(NOW(), INTERVAL 2 DAY));
+
+-- 4. 添加 nickname 和 email 列到 users 表
+DROP PROCEDURE IF EXISTS AddProfileColumns;
+
+DELIMITER //
+CREATE PROCEDURE AddProfileColumns()
+BEGIN
+    IF NOT EXISTS (
+        SELECT * 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'nickname'
+    ) THEN
+        ALTER TABLE users ADD COLUMN nickname VARCHAR(50);
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT * 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'email'
+    ) THEN
+        ALTER TABLE users ADD COLUMN email VARCHAR(100);
+    END IF;
+END //
+DELIMITER ;
+
+CALL AddProfileColumns();
+DROP PROCEDURE AddProfileColumns;

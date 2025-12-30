@@ -75,12 +75,16 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
+import axios from 'axios'
+
+const fileInput = ref(null)
 
 const form = reactive({
-  nickname: '演示用户',
-  email: 'user@example.com',
+  nickname: '',
+  email: '',
+  avatar: '',
   dailyGoal: 30,
   wordsPerGroup: parseInt(localStorage.getItem('wordsPerGroup')) || 20,
   darkMode: false,
@@ -88,8 +92,99 @@ const form = reactive({
   sound: true
 })
 
-const saveSettings = () => {
-  localStorage.setItem('wordsPerGroup', form.wordsPerGroup)
-  ElMessage.success('设置已保存')
+const getAvatarUrl = (path) => {
+    if (!path) return ''
+    if (path.startsWith('http')) return path
+    // Assuming backend is on same host/port or proxied, otherwise need base URL
+    // In dev usually /api is proxied but static files might need full URL or proxy
+    // If path starts with /avatars, it should work if mapped in backend
+    return `http://localhost:8080${path}` // Adjust port if needed, hardcoding for now or use env
 }
+
+const fetchProfile = async () => {
+    try {
+        const userStr = localStorage.getItem('user')
+        const userId = userStr ? JSON.parse(userStr).id : 1
+        
+        const res = await axios.get(`/api/user/stats?userId=${userId}`)
+        if (res.data.user) {
+            form.nickname = res.data.user.nickname || res.data.user.username
+            form.email = res.data.user.email || ''
+            form.avatar = res.data.user.avatar
+        }
+    } catch (e) {
+        console.error("Failed to fetch profile", e)
+    }
+}
+
+const handleFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const formData = new FormData()
+    const userStr = localStorage.getItem('user')
+    const userId = userStr ? JSON.parse(userStr).id : 1
+    
+    formData.append('file', file)
+    formData.append('userId', userId)
+
+    try {
+        const res = await axios.post('/api/user/upload-avatar', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        if (res.data.success) {
+            form.avatar = res.data.avatar
+            ElMessage.success('头像上传成功')
+            // Update local user info just in case
+            const user = JSON.parse(localStorage.getItem('user') || '{}')
+            user.avatar = res.data.avatar
+            localStorage.setItem('user', JSON.stringify(user))
+        } else {
+            ElMessage.error(res.data.message || '上传失败')
+        }
+    } catch (e) {
+        ElMessage.error('上传出错')
+    }
+}
+
+const saveSettings = async () => {
+  localStorage.setItem('wordsPerGroup', form.wordsPerGroup)
+  
+  // Save profile to backend
+  try {
+      const userStr = localStorage.getItem('user')
+      const userId = userStr ? JSON.parse(userStr).id : 1
+      
+      await axios.post('/api/user/update-profile', {
+          userId,
+          nickname: form.nickname,
+          email: form.email
+      })
+      
+      ElMessage.success('设置已保存')
+      
+      // Update local storage
+      const user = JSON.parse(localStorage.getItem('user') || '{}')
+      user.nickname = form.nickname
+      localStorage.setItem('user', JSON.stringify(user))
+      window.dispatchEvent(new Event('user-updated'))
+      
+  } catch (e) {
+      ElMessage.error('保存失败')
+  }
+}
+
+watch(() => form.darkMode, (val) => {
+    if (val) {
+        document.documentElement.classList.add('dark')
+    } else {
+        document.documentElement.classList.remove('dark')
+    }
+})
+
+onMounted(() => {
+    fetchProfile()
+    // Check system preference or saved preference for dark mode
+    // (Optional implementation detail)
+})
 </script>

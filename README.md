@@ -210,6 +210,47 @@ SmartLingo 是一个基于现代 Web 技术栈构建的全栈智能英语学习�
 
 ---
 
+### 3.6 AI 助教模块 (AI Tutor) - `AiFloatingChat.vue`
+
+智能悬浮球组件，提供实时的 AI 问答服务。
+
+#### 3.6.1 伪流式传输与安全分块 (Simulated Streaming & Safe Chunking)
+- **技术挑战**：
+  - 远程 Python AI 服务暂不支持标准的 `stream: true` 流式响应。
+  - 直接通过 SSE (Server-Sent Events) 转发多行文本（如例句列表）时，换行符会被浏览器误判为 SSE 事件分隔符，导致数据截断或丢失。
+- **解决方案**：**"后端分块 + 前端重组"** 策略。
+  - **后端 (`AiController`)**：
+    1. **降级获取**：使用 `postForObject` 一次性获取 AI 的完整回复。
+    2. **安全封装**：将回复文本切割为小块（Chunk Size = 5字符）。
+    3. **JSON 包装**：每个块封装为 `{"chunk": "..."}` 格式发送。**核心作用**：JSON 格式化会自动转义换行符（`\n` -> `\\n`），确保通过 SSE 传输时的协议安全性。
+    4. **视觉模拟**：在发送块之间人为增加 `20ms` 延时，在前端还原出丝滑的 "打字机" 效果，优化用户体验。
+  - **前端 (`AiFloatingChat`)**：
+    1. 使用 `fetch` API + `TextDecoder` 读取 ReadableStream。
+    2. **流式解析器**：
+       - 监听 `data:` 开头的行。
+       - 尝试 `JSON.parse` 提取 `chunk` 字段。
+       - 实时拼接到消息气泡中，实现逐字显示。
+
+---
+
+### 3.7 系统设置模块 (Settings) - `Settings.vue`
+
+提供用户个性化配置及资料管理功能。
+
+#### 3.7.1 个人资料管理
+- **功能描述**：允许用户修改昵称、邮箱以及上传个性化头像。
+- **头像上传**：
+  - 前端：使用隐藏的 `<input type="file">` 触发文件选择，通过 `FormData` 封装文件。
+  - 后端：`UserController.uploadAvatar` 接收 `MultipartFile`。
+  - **存储策略**：文件被保存到项目根目录下的 `avatars/` 文件夹。
+  - **资源映射**：通过 `WebConfig` 将 URL 路径 `/avatars/**` 映射到本地文件系统，实现静态资源访问。
+
+#### 3.7.2 深色模式 (Dark Mode)
+- **实现原理**：
+  - 基于 Tailwind CSS 的 `dark:` 变体。
+  - **切换逻辑**：监听开关状态，直接操作 DOM：`document.documentElement.classList.toggle('dark')`。
+  - 这会触发 CSS 中定义的 `dark:bg-gray-900` 等样式，实现全局暗黑主题切换。
+
 ## 4. 数据库设计详解 (Database Schema)
 
 ### 4.1 Users 表 (用户表)

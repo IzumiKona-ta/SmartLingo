@@ -15,6 +15,9 @@ public class WebConfig implements WebMvcConfigurer {
         // Try absolute path for safety in this environment
         registry.addResourceHandler("/files/**")
                 .addResourceLocations("file:C:/Users/35742/Desktop/workfile/TrainingWeek/resource/");
+        
+        registry.addResourceHandler("/avatars/**")
+                .addResourceLocations("file:C:/Users/35742/Desktop/workfile/TrainingWeek/avatars/");
     }
 
     @Override

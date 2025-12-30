@@ -7,17 +7,17 @@
   >
     <!-- Chat Window -->
     <transition name="scale-fade">
-      <div v-if="isOpen" class="mb-4 w-96 bg-white/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden" style="height: 500px;">
+      <div v-if="isOpen" ref="chatWindowRef" class="mb-4 w-96 bg-white/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl flex flex-col overflow-hidden" style="height: 500px;">
         <!-- Header -->
         <div 
-          class="bg-indigo-600/90 p-4 text-white flex justify-between items-center backdrop-blur-sm cursor-move select-none"
+          class="bg-indigo-600/90 p-4 text-white flex justify-between items-center backdrop-blur-sm cursor-pointer select-none"
           @mousedown="startDrag"
         >
           <div class="flex items-center space-x-2">
             <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">🤖</div>
             <span class="font-bold">AI 助教</span>
           </div>
-          <button @click.stop="isOpen = false" class="text-white/80 hover:text-white" @mousedown.stop>
+          <button @click.stop="isOpen = false" class="text-white/80 hover:text-white cursor-pointer" @mousedown.stop>
             <Close class="w-5 h-5" />
           </button>
         </div>
@@ -29,9 +29,6 @@
               :class="['max-w-[85%] rounded-2xl p-3 text-sm shadow-sm', 
                 msg.role === 'user' ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white text-gray-800 rounded-bl-none']"
             >
-              <div v-if="msg.image" class="mb-2">
-                <img :src="msg.image" class="rounded-lg max-h-32 object-cover border border-white/20" />
-              </div>
               <div v-html="renderMarkdown(msg.text)" class="prose prose-sm prose-invert"></div>
             </div>
           </div>
@@ -83,7 +80,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, computed, onUnmounted } from 'vue'
+import { ref, nextTick, computed, onUnmounted, watch } from 'vue'
 import { ChatDotRound, Close, Position } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import axios from 'axios'
@@ -95,6 +92,7 @@ const messages = ref([
 ])
 const isLoading = ref(false)
 const messagesContainer = ref(null)
+const chatWindowRef = ref(null)
 
 // Dragging Logic
 const rootRef = ref(null)
@@ -105,6 +103,7 @@ const isDragging = ref(false)
 const dragOffset = ref({ x: 0, y: 0 })
 const isLongPress = ref(false)
 const pressTimer = ref(null)
+const startPos = ref({ x: 0, y: 0 })
 
 const containerStyle = computed(() => {
   if (!hasMoved.value) return {}
@@ -124,14 +123,37 @@ const startDrag = (e) => {
 
 // Button Long Press Logic
 const handleButtonMouseDown = (e) => {
+  if (e.button !== 0) return
+  
   // Reset states
   isLongPress.value = false
+  startPos.value = { x: e.clientX, y: e.clientY }
   
   // Start 1s timer
   pressTimer.value = setTimeout(() => {
     isLongPress.value = true
     initDrag(e)
   }, 1000)
+  
+  window.addEventListener('mousemove', checkMoveCancel)
+  window.addEventListener('mouseup', clearMoveCheck)
+}
+
+const checkMoveCancel = (e) => {
+    const dx = Math.abs(e.clientX - startPos.value.x)
+    const dy = Math.abs(e.clientY - startPos.value.y)
+    if (dx > 5 || dy > 5) {
+        if (pressTimer.value) {
+            clearTimeout(pressTimer.value)
+            pressTimer.value = null
+        }
+        clearMoveCheck()
+    }
+}
+
+const clearMoveCheck = () => {
+    window.removeEventListener('mousemove', checkMoveCancel)
+    window.removeEventListener('mouseup', clearMoveCheck)
 }
 
 const handleButtonMouseUp = () => {
@@ -139,6 +161,7 @@ const handleButtonMouseUp = () => {
     clearTimeout(pressTimer.value)
     pressTimer.value = null
   }
+  clearMoveCheck()
   
   if (isDragging.value) {
     stopDrag()
@@ -148,6 +171,52 @@ const handleButtonMouseUp = () => {
   }
   isLongPress.value = false
 }
+
+// Watch isOpen to clamp position if off-screen
+watch(isOpen, async (val) => {
+  if (val) {
+    await nextTick()
+    if (!rootRef.value) return
+    
+    const rect = rootRef.value.getBoundingClientRect()
+    const windowHeight = window.innerHeight
+    const windowWidth = window.innerWidth
+    
+    // Check Top overflow (since we anchor bottom, it grows up)
+    if (rect.top < 0) {
+       // Too high, push down
+       // If bottom is set, reduce it
+       // rect.top = windowHeight - bottom - height
+       // We want rect.top >= 0 => bottom <= windowHeight - height
+       
+       const height = rect.height
+       let currentBottom = position.value.bottom
+       if (!hasMoved.value) currentBottom = 32 // default bottom-8
+       
+       const maxBottom = windowHeight - height
+       if (currentBottom > maxBottom) {
+           position.value.bottom = Math.max(0, maxBottom)
+           // If we modify position, we must set hasMoved to true to apply style
+           hasMoved.value = true
+       }
+    }
+    
+    // Check Right overflow (shouldn't happen with right anchor, but check left)
+    // rect.left = windowWidth - right - width
+    // We want rect.left >= 0 => right <= windowWidth - width
+    if (rect.left < 0) {
+        const width = rect.width
+        let currentRight = position.value.right
+        if (!hasMoved.value) currentRight = 32
+        
+        const maxRight = windowWidth - width
+        if (currentRight > maxRight) {
+            position.value.right = Math.max(0, maxRight)
+            hasMoved.value = true
+        }
+    }
+  }
+})
 
 const initDrag = (e) => {
   const rect = rootRef.value.getBoundingClientRect()
@@ -295,11 +364,21 @@ const sendMessage = async () => {
                 if (dataLine.startsWith('data:')) {
                     // 移除 "data:" 前缀
                     let content = dataLine.slice(5)
-                    // 恢复换行符 (如果 SseEmitter 拆分了换行，这里可能需要根据上下文处理，但通常流式文本直接拼接即可)
-                    // 注意：Spring SseEmitter 会把换行符转换成多行 data: 
-                    // 例如 "A\nB" -> "data:A\ndata:B\n\n"
-                    // 所以这里直接拼接 content 即可
-                    aiMsg.text += content
+                    try {
+                        // 尝试解析 JSON (后端可能为了安全传输换行符而封装了 JSON)
+                        const json = JSON.parse(content)
+                        if (json.chunk) {
+                            aiMsg.text += json.chunk
+                        } else if (json.content) {
+                            aiMsg.text += json.content
+                        } else {
+                            // 纯文本或其他 JSON
+                             aiMsg.text += content
+                        }
+                    } catch (e) {
+                        // 不是 JSON，作为纯文本处理
+                        aiMsg.text += content
+                    }
                 }
             }
         }

@@ -114,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { HomeFilled, Reading, DataAnalysis, Setting, Menu, Document } from '@element-plus/icons-vue'
 import AiFloatingChat from './AiFloatingChat.vue'
@@ -123,6 +123,14 @@ const route = useRoute()
 const router = useRouter()
 const isMobileMenuOpen = ref(false)
 const username = ref('User')
+const nickname = ref('')
+const avatar = ref('')
+
+const getAvatarUrl = (path) => {
+    if (!path) return ''
+    if (path.startsWith('http')) return path
+    return `http://localhost:8080${path}`
+}
 
 const navItems = [
   { name: '学习看板', path: '/', icon: HomeFilled },
@@ -132,16 +140,27 @@ const navItems = [
   { name: '设置', path: '/settings', icon: Setting },
 ]
 
-onMounted(() => {
+const updateUserInfo = () => {
   const storedUser = localStorage.getItem('user')
   if (storedUser) {
     try {
       const user = JSON.parse(storedUser)
       username.value = user.username || 'User'
+      nickname.value = user.nickname || ''
+      avatar.value = user.avatar || ''
     } catch (e) {
       console.error('Failed to parse user data', e)
     }
   }
+}
+
+onMounted(() => {
+  updateUserInfo()
+  window.addEventListener('user-updated', updateUserInfo)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('user-updated', updateUserInfo)
 })
 
 const logout = () => {
