@@ -214,7 +214,16 @@ SmartLingo 是一个基于现代 Web 技术栈构建的全栈智能英语学习�
 
 智能悬浮球组件，提供实时的 AI 问答服务。
 
-#### 3.6.1 伪流式传输与安全分块 (Simulated Streaming & Safe Chunking)
+#### 3.6.1 悬浮交互逻辑 (Floating Interaction)
+- **即时拖拽 (Immediate Drag)**：
+  - 为了提升用户体验，放弃了传统的 "长按拖拽" 模式，改为 **"即时拖拽 + 阈值判定"**。
+  - **算法**：
+    - 监听 `mousedown` / `touchstart` 事件记录起始坐标。
+    - 监听 `mousemove` 计算位移 `delta`。
+    - 阈值判定：当位移 `> 5px` 时，判定为拖拽行为，进入 `initDrag` 模式；否则视为点击行为，触发 `toggleOpen`。
+  - **边界限制**：实时计算 `getBoundingClientRect`，防止悬浮球被拖出屏幕可视区域。
+
+#### 3.6.2 伪流式传输与安全分块 (Simulated Streaming & Safe Chunking)
 - **技术挑战**：
   - 远程 Python AI 服务暂不支持标准的 `stream: true` 流式响应。
   - 直接通过 SSE (Server-Sent Events) 转发多行文本（如例句列表）时，换行符会被浏览器误判为 SSE 事件分隔符，导致数据截断或丢失。
@@ -239,17 +248,18 @@ SmartLingo 是一个基于现代 Web 技术栈构建的全栈智能英语学习�
 
 #### 3.7.1 个人资料管理
 - **功能描述**：允许用户修改昵称、邮箱以及上传个性化头像。
-- **头像上传**：
+- **头像上传安全机制**：
   - 前端：使用隐藏的 `<input type="file">` 触发文件选择，通过 `FormData` 封装文件。
-  - 后端：`UserController.uploadAvatar` 接收 `MultipartFile`。
-  - **存储策略**：文件被保存到项目根目录下的 `avatars/` 文件夹。
+  - **后端优化 (`UserController.uploadAvatar`)**：
+    - 采用 `try-with-resources` 语法糖自动管理文件流，确保 `InputStream` 在复制完成后被强制关闭，防止文件句柄泄漏导致无法删除旧文件或占用系统资源。
+    - 文件名处理：使用 `System.currentTimeMillis()` 加随机数生成唯一文件名，防止重名覆盖。
   - **资源映射**：通过 `WebConfig` 将 URL 路径 `/avatars/**` 映射到本地文件系统，实现静态资源访问。
 
 #### 3.7.2 深色模式 (Dark Mode)
 - **实现原理**：
-  - 基于 Tailwind CSS 的 `dark:` 变体。
-  - **切换逻辑**：监听开关状态，直接操作 DOM：`document.documentElement.classList.toggle('dark')`。
-  - 这会触发 CSS 中定义的 `dark:bg-gray-900` 等样式，实现全局暗黑主题切换。
+  - **Tailwind 配置**：在 `tailwind.config.cjs` 中开启 `darkMode: 'class'` 模式，允许通过父级类名手动控制。
+  - **样式策略**：组件内部全面适配 `dark:` 前缀样式（如 `bg-white dark:bg-gray-800`），确保文字、背景、边框在深色模式下具有足够的对比度。
+  - **切换逻辑**：监听开关状态，动态在 `html` 根标签上添加或移除 `dark` 类名，配合 CSS 变量实现毫秒级的主题切换。
 
 ## 4. 数据库设计详解 (Database Schema)
 
