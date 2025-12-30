@@ -86,13 +86,7 @@ BEGIN
         ALTER TABLE users ADD COLUMN nickname VARCHAR(50);
     END IF;
 
-    IF NOT EXISTS (
-        SELECT * 
-        FROM information_schema.columns 
-        WHERE table_name = 'users' AND column_name = 'email'
-    ) THEN
-        ALTER TABLE users ADD COLUMN email VARCHAR(100);
-    END IF;
+    -- 移除 email 列添加逻辑，保持与后端一致
 END //
 DELIMITER ;
 

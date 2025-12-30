@@ -280,12 +280,10 @@ public class UserController {
     public Map<String, Object> updateProfile(@RequestBody Map<String, Object> body) {
         Long userId = ((Number) body.get("userId")).longValue();
         String nickname = (String) body.get("nickname");
-        String email = (String) body.get("email");
 
         User user = userMapper.selectById(userId);
         if (user != null) {
             if (nickname != null) user.setNickname(nickname);
-            if (email != null) user.setEmail(email);
             userMapper.updateById(user);
         }
 
@@ -311,7 +309,11 @@ public class UserController {
             String uniqueFileName = System.currentTimeMillis() + "_" + fileName;
             
             Path path = Paths.get(uploadDir + uniqueFileName);
-            Files.copy(file.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+            
+            // Use try-with-resources to ensure InputStream is closed
+            try (var inputStream = file.getInputStream()) {
+                Files.copy(inputStream, path, StandardCopyOption.REPLACE_EXISTING);
+            }
 
             // 2. Update User
             User user = userMapper.selectById(userId);

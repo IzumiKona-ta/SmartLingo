@@ -63,11 +63,12 @@
       <!-- User Profile -->
       <div class="p-4 border-t border-gray-100 bg-gray-50">
         <div class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white transition-colors cursor-pointer group relative">
-          <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold shadow-sm border border-indigo-200">
-            {{ username[0]?.toUpperCase() || 'U' }}
+          <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden text-indigo-600 font-bold shadow-sm border border-indigo-200">
+            <img v-if="avatar" :src="getAvatarUrl(avatar)" class="w-full h-full object-cover" alt="User" />
+            <span v-else>{{ (nickname || username)[0]?.toUpperCase() || 'U' }}</span>
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-gray-800 truncate">{{ username }}</p>
+            <p class="text-sm font-semibold text-gray-800 truncate">{{ nickname || username }}</p>
             <div class="flex items-center mt-0.5">
               <div class="w-2 h-2 rounded-full bg-green-500 mr-1.5"></div>
               <p class="text-xs text-gray-500">在线</p>

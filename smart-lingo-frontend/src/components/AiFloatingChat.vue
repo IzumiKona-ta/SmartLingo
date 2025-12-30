@@ -121,55 +121,46 @@ const startDrag = (e) => {
   initDrag(e)
 }
 
-// Button Long Press Logic
+// Button Drag Logic (Immediate drag on move)
 const handleButtonMouseDown = (e) => {
   if (e.button !== 0) return
   
-  // Reset states
-  isLongPress.value = false
   startPos.value = { x: e.clientX, y: e.clientY }
+  isDragging.value = false // Not dragging yet
   
-  // Start 1s timer
-  pressTimer.value = setTimeout(() => {
-    isLongPress.value = true
-    initDrag(e)
-  }, 1000)
-  
-  window.addEventListener('mousemove', checkMoveCancel)
-  window.addEventListener('mouseup', clearMoveCheck)
+  window.addEventListener('mousemove', checkDragStart)
+  window.addEventListener('mouseup', handleButtonMouseUp)
+  window.addEventListener('touchmove', checkDragStart)
+  window.addEventListener('touchend', handleButtonMouseUp)
 }
 
-const checkMoveCancel = (e) => {
-    const dx = Math.abs(e.clientX - startPos.value.x)
-    const dy = Math.abs(e.clientY - startPos.value.y)
+const checkDragStart = (e) => {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY
+    
+    const dx = Math.abs(clientX - startPos.value.x)
+    const dy = Math.abs(clientY - startPos.value.y)
+    
+    // Threshold to consider it a drag
     if (dx > 5 || dy > 5) {
-        if (pressTimer.value) {
-            clearTimeout(pressTimer.value)
-            pressTimer.value = null
-        }
-        clearMoveCheck()
+        window.removeEventListener('mousemove', checkDragStart)
+        window.removeEventListener('touchmove', checkDragStart)
+        initDrag(e)
     }
 }
 
-const clearMoveCheck = () => {
-    window.removeEventListener('mousemove', checkMoveCancel)
-    window.removeEventListener('mouseup', clearMoveCheck)
-}
-
-const handleButtonMouseUp = () => {
-  if (pressTimer.value) {
-    clearTimeout(pressTimer.value)
-    pressTimer.value = null
-  }
-  clearMoveCheck()
+const handleButtonMouseUp = (e) => {
+  window.removeEventListener('mousemove', checkDragStart)
+  window.removeEventListener('mouseup', handleButtonMouseUp)
+  window.removeEventListener('touchmove', checkDragStart)
+  window.removeEventListener('touchend', handleButtonMouseUp)
   
   if (isDragging.value) {
     stopDrag()
-  } else if (!isLongPress.value) {
-    // If not a long press (drag), treat as click
+  } else {
+    // It was a click
     isOpen.value = !isOpen.value
   }
-  isLongPress.value = false
 }
 
 // Watch isOpen to clamp position if off-screen
