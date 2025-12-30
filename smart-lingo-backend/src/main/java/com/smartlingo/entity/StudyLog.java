@@ -21,6 +21,9 @@ public class StudyLog {
     @TableField("activity_type")
     private String activityType; // VOCAB, EXAM
     
+    @TableField("book_type")
+    private String bookType;
+    
     @TableField("points_earned")
     private Integer pointsEarned;
     
@@ -36,6 +39,8 @@ public class StudyLog {
     public void setWordId(Long wordId) { this.wordId = wordId; }
     public String getActivityType() { return activityType; }
     public void setActivityType(String activityType) { this.activityType = activityType; }
+    public String getBookType() { return bookType; }
+    public void setBookType(String bookType) { this.bookType = bookType; }
     public Integer getPointsEarned() { return pointsEarned; }
     public void setPointsEarned(Integer pointsEarned) { this.pointsEarned = pointsEarned; }
     public LocalDateTime getCreatedAt() { return createdAt; }

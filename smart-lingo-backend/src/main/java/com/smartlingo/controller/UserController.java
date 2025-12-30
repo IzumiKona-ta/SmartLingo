@@ -49,12 +49,14 @@ public class UserController {
         Long todayLearned = studyLogMapper.selectCount(new QueryWrapper<StudyLog>()
                 .eq("user_id", userId)
                 .eq("activity_type", "VOCAB")
+                .eq("book_type", user.getCurrentBook())
                 .ge("created_at", todayStart));
                 
         // Total Learned (Count all VOCAB logs)
         Long totalLearned = studyLogMapper.selectCount(new QueryWrapper<StudyLog>()
                 .eq("user_id", userId)
-                .eq("activity_type", "VOCAB"));
+                .eq("activity_type", "VOCAB")
+                .eq("book_type", user.getCurrentBook()));
                 
         // Today Duration (Mock for now as we don't track duration yet, or use count * 0.5 mins)
         long todayDuration = todayLearned * 1; // 1 min per word estimate
@@ -139,6 +141,57 @@ public class UserController {
         return response;
     }
 
+    @PostMapping("/signin")
+    public Map<String, Object> signIn(@RequestBody Map<String, Object> body) {
+        Long userId = ((Number) body.get("userId")).longValue();
+        Map<String, Object> response = new HashMap<>();
+        
+        // 1. Check if signed in today
+        LocalDateTime todayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+        Long todaySignIn = studyLogMapper.selectCount(new QueryWrapper<StudyLog>()
+                .eq("user_id", userId)
+                .eq("activity_type", "SIGN_IN")
+                .ge("created_at", todayStart));
+        
+        User user = userMapper.selectById(userId);
+        
+        if (todaySignIn > 0) {
+            response.put("success", false);
+            response.put("message", "Already signed in today");
+            response.put("streakDays", user.getStreakDays());
+            return response;
+        }
+        
+        // 2. Update Streak
+        // Check yesterday's activity to maintain streak
+        LocalDateTime yesterdayStart = todayStart.minusDays(1);
+        LocalDateTime yesterdayEnd = todayStart.minusSeconds(1);
+        
+        Long yesterdayActivity = studyLogMapper.selectCount(new QueryWrapper<StudyLog>()
+                .eq("user_id", userId)
+                .ge("created_at", yesterdayStart)
+                .le("created_at", yesterdayEnd));
+        
+        if (yesterdayActivity > 0) {
+            user.setStreakDays((user.getStreakDays() == null ? 0 : user.getStreakDays()) + 1);
+        } else {
+            user.setStreakDays(1);
+        }
+        userMapper.updateById(user);
+        
+        // 3. Create Log
+        StudyLog log = new StudyLog();
+        log.setUserId(userId);
+        log.setActivityType("SIGN_IN");
+        log.setCreatedAt(LocalDateTime.now());
+        studyLogMapper.insert(log);
+        
+        response.put("success", true);
+        response.put("streakDays", user.getStreakDays());
+        
+        return response;
+    }
+
     @PostMapping("/book")
     public Map<String, Object> updateBook(@RequestBody Map<String, Object> body) {
         Long userId = ((Number) body.get("userId")).longValue();
@@ -153,6 +206,66 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("currentBook", book);
+        return response;
+    }
+
+    @PostMapping("/reset-book")
+    public Map<String, Object> resetBook(@RequestBody Map<String, Object> body) {
+        Long userId = ((Number) body.get("userId")).longValue();
+        String book = (String) body.get("book");
+        
+        // Delete all VOCAB logs for this user and book
+        studyLogMapper.delete(new QueryWrapper<StudyLog>()
+                .eq("user_id", userId)
+                .eq("activity_type", "VOCAB")
+                .eq("book_type", book));
+                
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        return response;
+    }
+
+    @PostMapping("/create-test-user")
+    public Map<String, Object> createTestUser() {
+        // Create or Reset User ID 999
+        Long userId = 999L;
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            user = new User();
+            user.setId(userId);
+            user.setUsername("TestUser");
+            user.setPoints(0);
+            user.setStreakDays(0);
+            user.setCurrentBook("CET4");
+            userMapper.insert(user); // Assuming non-auto-increment or handled
+        } else {
+             // Reset logs
+             studyLogMapper.delete(new QueryWrapper<StudyLog>().eq("user_id", userId));
+        }
+
+        // Generate logs for last 5 days
+        LocalDateTime now = LocalDateTime.now();
+        Random random = new Random();
+        
+        for (int i = 0; i < 5; i++) {
+            int wordsCount = 100 + random.nextInt(50); // 100-150 words
+            LocalDateTime date = now.minusDays(i).withHour(10);
+            
+            for (int j = 0; j < wordsCount; j++) {
+                StudyLog log = new StudyLog();
+                log.setUserId(userId);
+                log.setActivityType("VOCAB");
+                log.setBookType("CET4");
+                log.setCreatedAt(date.plusMinutes(j % 60));
+                log.setWordId((long)j);
+                studyLogMapper.insert(log);
+            }
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Test user 999 created with history");
+        response.put("userId", userId);
         return response;
     }
 }

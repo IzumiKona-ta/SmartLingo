@@ -59,14 +59,10 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 gap-6">
       <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
         <h3 class="font-bold text-gray-800 mb-4">学习趋势</h3>
         <div ref="trendChartRef" class="h-64 w-full"></div>
-      </div>
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 class="font-bold text-gray-800 mb-4">能力模型</h3>
-        <div ref="radarChartRef" class="h-64 w-full"></div>
       </div>
     </div>
   </div>
@@ -87,7 +83,6 @@ const stats = ref({
 })
 
 const trendChartRef = ref(null)
-const radarChartRef = ref(null)
 
 const fetchStats = async () => {
   try {
@@ -110,10 +105,6 @@ const fetchStats = async () => {
     if (res.data.calendarDays) {
         initTrendChart(res.data.calendarDays)
     }
-    
-    if (res.data.ability) {
-        initRadarChart(res.data.ability)
-    }
 
   } catch (e) {
     console.error("Failed to fetch stats", e)
@@ -124,9 +115,9 @@ const initTrendChart = (data) => {
     if (!trendChartRef.value) return
     const chart = echarts.init(trendChartRef.value)
     
-    // Backend returns reverse chronological (Today first)
-    // Reverse to show chronological (Oldest first)
-    const chartData = [...data].reverse()
+    // Backend returns chronological (Oldest first)
+    // No need to reverse if we want Newest on Right
+    const chartData = [...data]
     
     const option = {
         tooltip: {
@@ -151,58 +142,22 @@ const initTrendChart = (data) => {
         },
         series: [
             {
-                name: '学习词数',
+                name: '学习时长(分钟)',
                 type: 'line',
                 smooth: true,
-                itemStyle: { color: '#4F46E5' },
+                data: chartData.map(d => d.count), // Assuming 'count' is duration or words? Logic uses count.
                 areaStyle: {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: 'rgba(79, 70, 229, 0.2)' },
-                        { offset: 1, color: 'rgba(79, 70, 229, 0)' }
+                        { offset: 0, color: 'rgba(99, 102, 241, 0.2)' },
+                        { offset: 1, color: 'rgba(99, 102, 241, 0)' }
                     ])
                 },
-                data: chartData.map(d => d.count || 0)
+                itemStyle: { color: '#6366F1' },
+                lineStyle: { width: 3 }
             }
         ]
     }
-    chart.setOption(option)
     
-    window.addEventListener('resize', () => chart.resize())
-}
-
-const initRadarChart = (data) => {
-    if (!radarChartRef.value) return
-    const chart = echarts.init(radarChartRef.value)
-    
-    const option = {
-        radar: {
-            indicator: [
-                { name: '词汇量', max: 100 },
-                { name: '阅读', max: 100 },
-                { name: '听力', max: 100 },
-                { name: '语法', max: 100 }
-            ],
-            splitArea: {
-                areaStyle: {
-                    color: ['#F9FAFB', '#F3F4F6']
-                }
-            }
-        },
-        series: [
-            {
-                name: '能力模型',
-                type: 'radar',
-                data: [
-                    {
-                        value: [data.vocab, data.reading, data.listening, data.grammar],
-                        name: '当前能力',
-                        itemStyle: { color: '#10B981' },
-                        areaStyle: { opacity: 0.2 }
-                    }
-                ]
-            }
-        ]
-    }
     chart.setOption(option)
     
     window.addEventListener('resize', () => chart.resize())

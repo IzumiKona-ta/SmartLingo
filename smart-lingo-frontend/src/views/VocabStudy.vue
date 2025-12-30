@@ -11,16 +11,15 @@
           </div>
        </div>
 
-       <!-- Daily Goal Progress -->
+       <!-- Group Progress -->
        <div class="flex-1 mx-8 max-w-xs">
-         <div class="flex justify-between text-xs font-bold text-gray-400 mb-1">
-           <span>今日目标</span>
-           <span>{{ todayLearned }} / {{ dailyGoal }}</span>
+         <div class="flex justify-end text-xs font-bold text-gray-400 mb-1">
+           <span>{{ words.length > 0 ? Math.min(currentIndex + 1, words.length) : 0 }} / {{ words.length }}</span>
          </div>
          <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
            <div 
              class="h-full bg-indigo-500 transition-all duration-500 ease-out"
-             :style="{ width: Math.min((todayLearned / dailyGoal) * 100, 100) + '%' }"
+             :style="{ width: (words.length > 0 ? (Math.min(currentIndex + 1, words.length) / words.length) * 100 : 0) + '%' }"
            ></div>
          </div>
        </div>
@@ -91,11 +90,6 @@
         v-else 
         class="w-full h-full relative"
       >
-        <!-- Progress Indicator (Top Left outside card) -->
-         <div class="absolute -top-12 left-0 text-gray-400 font-bold text-lg font-mono tracking-widest z-0">
-            {{ Math.min(masteredCount + 1, initialCount) }} / {{ initialCount }}
-         </div>
-
         <div 
            class="w-full h-full transition-all duration-500 ease-in-out"
            :class="{ 'opacity-0 -translate-y-12': isFlyingOut }"
@@ -254,6 +248,7 @@ const isFlipped = ref(false)
 const isLoading = ref(false)
 const errorMsg = ref('')
 const currentBookLabel = ref('Loading...')
+const currentBookCode = ref('CET4')
 const isFlyingOut = ref(false)
 const reviewedWords = ref([])
 const masteredCount = ref(0)
@@ -351,7 +346,14 @@ const handleResult = async (type) => {
     // Map type to logic if needed, for now we just checkin
     // In a real app, we'd send the 'quality' of recall (0-5)
     console.log("Checkin wordId:", currentW.id, "userId:", userId)
-    await axios.post('/api/study/checkin', { userId: userId, type: 'VOCAB', wordId: currentW.id })
+
+    const payload = {
+      userId: userId,
+      wordId: currentW.id,
+      type: 'VOCAB',
+      book: currentBookCode.value
+    }
+    await axios.post('/api/study/checkin', payload)
   } catch (e) {
     console.error("Checkin failed", e)
   }
@@ -461,6 +463,7 @@ const fetchWords = async () => {
     
     const userRes = await axios.get(`/api/user/stats?userId=${userId}`)
     const book = userRes.data.user.currentBook || 'CET4'
+    currentBookCode.value = book
     currentBookLabel.value = book === 'CET4' ? '四级词汇' : (book === 'CET6' ? '六级词汇' : '考研词汇')
     
     if (userRes.data.stats) {

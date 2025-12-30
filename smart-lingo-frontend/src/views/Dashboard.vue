@@ -21,12 +21,12 @@
              <div class="ml-4 space-y-2">
                <h3 class="text-lg font-bold text-gray-800">{{ getBookLabel(currentBook) }}</h3>
                <div class="flex items-center text-sm text-gray-500 space-x-4">
-                  <span>已学习 <strong class="text-indigo-600">{{ todayLearned }}</strong> 词</span>
-                  <span>总词数 <strong class="text-gray-800">{{ totalWords }}</strong></span>
-               </div>
-               <div class="w-48 h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                 <div class="h-full bg-indigo-500 rounded-full" style="width: 2%"></div>
-               </div>
+                 <span>已学习 <strong class="text-indigo-600">{{ totalLearned }}</strong> 词</span>
+                 <span>总词数 <strong class="text-gray-800">{{ totalWords }}</strong></span>
+              </div>
+              <div class="w-48 h-2 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                <div class="h-full bg-indigo-500 rounded-full transition-all duration-500" :style="{ width: (totalWords > 0 ? (totalLearned / totalWords) * 100 : 0) + '%' }"></div>
+              </div>
                <div class="mt-2">
                  <button @click="showBookSelector = true" class="text-xs px-3 py-1 bg-orange-50 text-orange-600 rounded-full font-medium hover:bg-orange-100 transition-colors">
                    换本词书
@@ -98,7 +98,17 @@
         <!-- 日历 -->
         <div>
            <div class="flex justify-between items-center mb-4">
-             <h3 class="font-bold text-gray-700">日历</h3>
+             <div class="flex items-center space-x-4">
+               <h3 class="font-bold text-gray-700">日历</h3>
+               <button 
+                 @click="handleSignIn" 
+                 :disabled="isSignedIn"
+                 class="px-3 py-1 rounded-full text-xs font-bold transition-all"
+                 :class="isSignedIn ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md'"
+               >
+                 {{ isSignedIn ? '已签到' : '立即签到' }}
+               </button>
+             </div>
              <span class="text-xs text-gray-500">连续签到 <strong class="text-indigo-600">{{ streakDays }}</strong> 天</span>
            </div>
            <!-- 简单日历展示 -->
@@ -142,9 +152,19 @@
                 </div>
              </button>
           </div>
-          <button @click="showBookSelector = false" class="mt-6 w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors">取消</button>
+          
+          <div class="mt-6 space-y-3">
+            <button @click="handleResetBook" class="w-full py-3 border border-red-100 text-red-500 rounded-xl font-bold hover:bg-red-50 transition-colors flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              重置当前词书进度
+            </button>
+            <button @click="showBookSelector = false" class="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-colors">取消</button>
+          </div>
        </div>
     </div>
+
 
   </div>
 </template>
@@ -152,6 +172,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 // State
 const currentBook = ref('CET4')
@@ -162,6 +183,7 @@ const todayDuration = ref(0)
 const totalDuration = ref(0)
 const streakDays = ref(3)
 const totalWords = ref(4500)
+const isSignedIn = ref(false)
 
 const books = [
   { label: '四级词汇', value: 'CET4', short: 'CET4' },
@@ -198,9 +220,37 @@ const fetchUserData = async () => {
 
     if (res.data.calendarDays) {
       calendarDays.value = res.data.calendarDays
+      // Check if today is signed in (has any activity)
+      const today = calendarDays.value.find(d => d.isToday)
+      isSignedIn.value = today ? today.checked : false
     }
   } catch (e) {
-    console.error("Failed to fetch user stats", e)
+    console.error("Failed to fetch user data", e)
+  }
+}
+
+const handleSignIn = async () => {
+  try {
+    const userStr = localStorage.getItem('user')
+    const userId = userStr ? JSON.parse(userStr).id : 1
+    
+    const res = await axios.post('/api/user/signin', { userId })
+    if (res.data.success) {
+      streakDays.value = res.data.streakDays
+      isSignedIn.value = true
+      ElMessage.success('签到成功！')
+      // Refresh to show checkmark
+      fetchUserData()
+    } else {
+        if (res.data.message && res.data.message.includes("Already")) {
+             isSignedIn.value = true
+             ElMessage.info('今日已签到')
+        } else {
+             ElMessage.warning(res.data.message || '签到失败')
+        }
+    }
+  } catch (e) {
+    ElMessage.error('签到失败')
   }
 }
 
@@ -209,13 +259,42 @@ const selectBook = async (book) => {
     const userStr = localStorage.getItem('user')
     const userId = userStr ? JSON.parse(userStr).id : 1
     
-    await axios.post('/api/user/book', { userId: userId, book })
+    await axios.post('/api/user/book', { userId, book })
     currentBook.value = book
     showBookSelector.value = false
-    // Refresh stats if needed
-    totalWords.value = book === 'CET4' ? 4500 : (book === 'CET6' ? 5500 : 6000)
+    // Refetch to update words count
+    fetchUserData()
   } catch (e) {
-    console.error("Failed to update book", e)
+    console.error(e)
+  }
+}
+
+const handleResetBook = async () => {
+  try {
+    await ElMessageBox.confirm(
+      '确定要清空当前词书的所有学习记录吗？此操作不可恢复。',
+      '重置警告',
+      {
+        confirmButtonText: '确定重置',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+    
+    const userStr = localStorage.getItem('user')
+    const userId = userStr ? JSON.parse(userStr).id : 1
+    
+    const res = await axios.post('/api/user/reset-book', { userId, book: currentBook.value })
+    if (res.data.success) {
+       ElMessage.success('重置成功')
+       fetchUserData()
+       showBookSelector.value = false
+    }
+  } catch (e) {
+    if (e !== 'cancel') {
+        console.error(e)
+        ElMessage.error('重置失败')
+    }
   }
 }
 

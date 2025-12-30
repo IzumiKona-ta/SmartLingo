@@ -88,6 +88,14 @@ public class DatabaseInitializer implements CommandLineRunner {
             } catch (Exception e) {
                 // Ignore if column exists
             }
+            
+            // Migration: Add book_type if missing
+            try {
+                jdbcTemplate.execute("ALTER TABLE study_logs ADD COLUMN book_type VARCHAR(50) DEFAULT 'CET4'");
+                System.out.println("Added column 'book_type' to 'study_logs'.");
+            } catch (Exception e) {
+                // Ignore if column exists
+            }
         } catch (Exception e) {
             System.err.println("Failed to initialize database table 'study_logs': " + e.getMessage());
         }

@@ -18,7 +18,7 @@
       </div>
 
       <!-- Content -->
-      <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div v-else class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
         <div 
           v-for="file in files" 
           :key="file.name" 
@@ -125,10 +125,10 @@ const parseFile = (filename) => {
   const name = filename.replace('.pdf', '')
   
   // Try to match standard format
-  // Group 1: Type (CET4, CET6, GEE)
-  // Group 2: Year (4 digits)
+  // Group 1: Type (CET4, CET6, GEE) - non-greedy match for digits to avoid eating into the year
+  // Group 2: Year (4 digits, starting with 19 or 20)
   // Group 3: Session (optional 1 digit)
-  const match = name.match(/^([a-zA-Z]+)(\d{4})(\d?)$/)
+  const match = name.match(/^([a-zA-Z]+\d*?)((?:19|20)\d{2})(\d?)$/)
   
   let category = '真题'
   let title = name
@@ -140,9 +140,9 @@ const parseFile = (filename) => {
     const session = match[3]
 
     // Parse Type
-    if (type === 'CET4') category = '四级'
-    else if (type === 'CET6') category = '六级'
-    else if (type === 'GEE') category = '考研'
+    if (type.includes('CET4')) category = '四级'
+    else if (type.includes('CET6')) category = '六级'
+    else if (type.includes('GEE')) category = '考研'
     else category = type
 
     // Parse Title (Year)
@@ -153,11 +153,14 @@ const parseFile = (filename) => {
     else if (session === '2') subTitle = '下半年'
     else if (session) subTitle = session
   } else {
-    // Fallback for underscore format if still present
-    const parts = name.split('_')
-    if (parts.length >= 2) {
-       // ... (existing fallback logic if needed, or just skip)
-    }
+    // Fallback logic
+    if (name.includes('CET4')) category = '四级'
+    else if (name.includes('CET6')) category = '六级'
+    else if (name.includes('GEE')) category = '考研'
+    
+    // Try to extract year
+    const yearMatch = name.match(/(?:19|20)\d{2}/)
+    if (yearMatch) title = yearMatch[0]
   }
 
   return { category, title, subTitle }
@@ -165,10 +168,14 @@ const parseFile = (filename) => {
 
 const getCardStyle = (filename) => {
   const { category } = parseFile(filename)
-  if (category === '四级') return 'bg-gradient-to-br from-orange-400 to-orange-500'
-  if (category === '六级') return 'bg-gradient-to-br from-indigo-400 to-indigo-500'
-  if (category === '考研') return 'bg-gradient-to-br from-red-400 to-red-500'
-  return 'bg-gradient-to-br from-gray-400 to-gray-500'
+  
+  // Vibrant styles based on category
+  if (category === '四级') return 'bg-gradient-to-br from-indigo-500 to-blue-600'
+  if (category === '六级') return 'bg-gradient-to-br from-violet-500 to-purple-600'
+  if (category === '考研') return 'bg-gradient-to-br from-rose-500 to-red-600'
+  
+  // Default fallback
+  return 'bg-gradient-to-br from-slate-600 to-slate-700'
 }
 
 const openPreview = (file) => {

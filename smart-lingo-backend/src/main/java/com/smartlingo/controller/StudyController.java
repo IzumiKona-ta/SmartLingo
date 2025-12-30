@@ -24,6 +24,7 @@ public class StudyController {
         try {
             Long userId = Long.valueOf(payload.get("userId").toString());
             String type = (String) payload.getOrDefault("type", "VOCAB"); // VOCAB, READING, etc.
+            String book = (String) payload.getOrDefault("book", "CET4");
             
             StudyLog log = new StudyLog();
             log.setUserId(userId);
@@ -34,6 +35,7 @@ public class StudyController {
                 System.out.println("Checkin missing wordId!");
             }
             log.setActivityType(type);
+            log.setBookType(book);
             log.setCreatedAt(LocalDateTime.now());
             // In a real app, we might track duration or specific word IDs here
             
